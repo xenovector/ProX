@@ -42,57 +42,18 @@ Widget line({double height = 1, Color color = Colors.black26, double vertical = 
 }
 
 Widget themeButton(String text, onTapCallBack,
-    {EdgeInsets padding = EdgeInsets.zero, double fontSize = 19}) {
-  double width = double.infinity,
-      height = 40;
-  return InkWell(
-    onTap: onTapCallBack,
-    child: Container(
-      width: width,
-      height: height,
-      decoration: BoxDecoration(
-          color: ThemeColor.main,
-          borderRadius: BorderRadius.circular(20.0),
-          // border: Border.all(color: ThemeColor.mainDark),
+    {EdgeInsets padding = const EdgeInsets.symmetric(vertical: 12, horizontal: 8), double fontSize = 19}) {
+  return Container(
+    child: ElevatedButton(
+      style: ElevatedButton.styleFrom(
+          primary: ThemeColor.main, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(25.0))),
+      child: Padding(
+        padding: padding,
+        child: Text(text, style: TextStyle(color: Colors.white, fontSize: fontSize, fontWeight: FontWeight.w600)),
       ),
-      child: Container(
-        width: width * .8,
-        height: height * .8,
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(20.0),
-          gradient: new LinearGradient(
-              colors: [
-                const Color(0xFFFFE596),
-                ThemeColor.main,
-                ThemeColor.main,
-                Color(0xFFD09B01)
-              ],
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-              stops: [.0, .1, .9, 1],
-              tileMode: TileMode.clamp),
-          boxShadow: [
-            BoxShadow(
-              color: ThemeColor.main,
-              offset: Offset(0, -1.5),
-              spreadRadius: -.5,
-              blurRadius: 0,
-            ),
-          ],
-        ),
-        child: Center(child: Text(text, style: TextStyle(color: Colors.white, fontSize: fontSize, fontWeight: FontWeight.w600)),),
-      ),
+      onPressed: onTapCallBack,
     ),
   );
-  // return ElevatedButton(
-  //   style: ElevatedButton.styleFrom(
-  //       primary: ThemeColor.main, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(25.0))),
-  //   child: Padding(
-  //     padding: padding,
-  //     child: Text(text, style: TextStyle(color: Colors.white, fontSize: fontSize, fontWeight: FontWeight.w600)),
-  //   ),
-  //   onPressed: onTapCallBack,
-  // );
 }
 
 Widget infinityButton(String text, onTapCallBack,

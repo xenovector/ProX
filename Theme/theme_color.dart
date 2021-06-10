@@ -7,8 +7,8 @@ class ThemeColor {
 
   /// Main
   static const main = darkMode ? mainDark : mainLight;
-  static const mainLight = Color(0xFFFFCB39);
-  static const mainDark = Color(0xFFDEAA06);
+  static const mainLight = Color(0xFF2C92CE);
+  static const mainDark = Color(0xFF2C92CE);
 
   /// Background
   static const background = darkMode ? backgroundDark : backgroundLight;
@@ -19,7 +19,6 @@ class ThemeColor {
   static const text = darkMode ? textDark : textLight;
   static const textLight = Color(0xFF6C6C6C);
   static const textDark = Color(0xFF082F3B);
-  
 
   /// Line
   static const line = darkMode ? lineDark : lineLight;
@@ -36,7 +35,7 @@ class ThemeColor {
   static const dialog_error_color = Color(0xFFFC6666);
 
   /// ThemeSwatch
-  static const MaterialColor swatch = MaterialColor(0xFF56C0BE, _color);
+  static const MaterialColor swatch = MaterialColor(0xFF2C92CE, _color);
   static const Map<int, Color> _color = {
     50: Color.fromRGBO(_r, _g, _b, .1),
     100: Color.fromRGBO(_r, _g, _b, .2),

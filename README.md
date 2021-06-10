@@ -1,6 +1,7 @@
 # ProX
 `[Supported Null Safety]`<br/>
-ProX is a ready setup project library using enhanced GetX feature.
+### ProX is a ready setup project library using enhanced GetX feature.
+<br/>
 
 ## Setup
 With project setup guide, making ProX capable for both big and small project usage. <br />
