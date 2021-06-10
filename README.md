@@ -797,6 +797,8 @@ Add the following to your `info.plist` based on your own use case:
 ## Reminder
 Remember to include flutter `.gitignore` at your project level, you can pull out one from ProX project level to your project level if you doesn't have one.
 
+<br />
+
 ## Requirements
 
 Current Flutter & Dart compatibility breakdown:
@@ -805,6 +807,9 @@ Current Flutter & Dart compatibility breakdown:
 | --------------- | ------------ |
 | 2.x	            | 2.12.x       |
 
+<br />
+
+Make sure you uncomment `platform :ios` at Podfile and change to version to the noted version.
 | Android | iOS |
 | ---------- | ---- |
 | Min Sdk	21 | 10.0 |
