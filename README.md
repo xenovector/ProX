@@ -1,9 +1,10 @@
 # ProX
+`[Supported Null Safety]`<br/>
 ProX is a ready setup project library using enhanced GetX feature.
 
 ## Setup
-With project setup guide, making ProX capable for both big and small project usage.
-#### But sorry, you have to manually set it up.
+With project setup guide, making ProX capable for both big and small project usage. <br />
+**But sorry, you have to manually set it up.** <br />
 Download and drop `ProX` into `/lib` folder in your project.
 
  <!-- #### Cocoapods
@@ -67,14 +68,20 @@ class LoadingController extends GetxController {
       if (code == ServerError) {
         //showInAppBrowser(msg, appBarTitle: L.G_ERROR.tr);
         return false;
-      } else if (code == HtmlError) {
-        //showInAppBrowser(msg, appBarTitle: L.G_ERROR.tr);
+      } else if (code == RequestTimeout) {
+        if (tryAgain == null) {
+          await showConfirmation('Error: $code, You may experience slow internet issue, please try again later.');
+        } else {
+          // bool res = await showConfirmCancel('Error: $code', 'You may experience slow internet issue, try again?');
+          // if (res) tryAgain();
+        }
         return false;
-      } else if (code == SessionExpired) {
-        //Get.offAll(WalkThroughPage(), binding: WalkThroughBinding());
+      } else if (code.endsWith(SessionExpired)) {
+        await showConfirmation('Your seesion has expired, please login again.');
+        //Get.offAll(LoginPage(), binding: LoginBinding());
         return false;
-      } else if (code == ForceUpdate) {
-        //openForceUpdateDialog(internalContext);
+      } else if (code.endsWith(ForceUpdate)) {
+        openForceUpdateDialog();
         return false;
       } else if (code == Maintenance) {
         //
@@ -107,8 +114,6 @@ class LoadingController extends GetxController {
     else {
       bool didSetLocale = AppLanguage.didSetLocale.val;
       print('didSetLocale: $didSetLocale');
-      bool isHMS = await ProX.isHMS();
-      print('isHMS: $isHMS');
       if (!didSetLocale && AppLanguage.supportLocale.length > 1) {
         //Get.offAll(LanguagePage(), binding: LanguageBinding());
       } else {
@@ -354,63 +359,12 @@ assets:
 </details>
 <br />
 
-## Dark/Light mode setup
-Include belows in order to makes ur UI looks good on both android and ios. <br />
-
-### Android
-1. under android/app/src/main/res/draweble and draweble-v21/launch_background.xml
-```xml
-<!-- <item android:drawable="?android:colorBackground" /> -->
-<item android:drawable="@android:color/white" />
-```
-2. under android/app/src/main/res/value and value-night/style.xml
-```xml
-<?xml version="1.0" encoding="utf-8"?>
-<resources>
-    <!-- Theme applied to the Android Window while the process is starting when the OS's Dark Mode setting is off -->
-    <style name="LaunchTheme" parent="@android:style/Theme.Light.NoTitleBar">
-        <!-- Show a splash screen on the activity. Automatically removed when
-             Flutter draws its first frame -->
-        <item name="android:windowBackground">@drawable/launch_background</item>
-        <item name="android:windowDrawsSystemBarBackgrounds">true</item>
-        <item name="android:statusBarColor">@android:color/transparent</item>
-        <item name="android:navigationBarColor">@android:color/transparent</item>
-    </style>
-    <!-- Theme applied to the Android Window as soon as the process has started.
-         This theme determines the color of the Android Window while your
-         Flutter UI initializes, as well as behind your Flutter UI while its
-         running.
-         This Theme is only used starting with V2 of Flutter's Android embedding. -->
-    <style name="NormalTheme" parent="@android:style/Theme.Light.NoTitleBar">
-        <item name="android:windowBackground">?android:colorBackground</item>
-        <item name="android:windowDrawsSystemBarBackgrounds">true</item>
-        <item name="android:statusBarColor">@android:color/transparent</item>
-        <item name="android:navigationBarColor">@android:color/transparent</item>
-    </style>
-</resources>
-```
-
-<br />
-
-### iOS
-```xml
-    <key>UIUserInterfaceStyle</key>
-	<string>Light</string>
-	<key>UIViewControllerBasedStatusBarAppearance</key>
-	<false/>
-	<key>io.flutter.embedded_views_preview</key>
-	<true/>
-```
-
-
 ## Native Side Setup
 Make sure you included services file such as <br />
 
 `google-services.json` for Google <br />
 `GoogleServices-Info.plist` for Apple <br />
 `agconnect-services.json` for Huawei <br />
-
-
 
 <br />
 
@@ -633,6 +587,46 @@ class MainActivity: FlutterActivity() {
 ```
 </details>
 
+<details><summary><strong>Step 5:</strong></summary>
+
+Under
+`android/app/src/main/res/draweble/launch_background.xml`
+and
+`android/app/src/main/res/draweble-v21/launch_background.xml`
+
+```xml
+<!-- <item android:drawable="?android:colorBackground" /> -->
+<item android:drawable="@android:color/white" />
+```
+<br />
+2. under android/app/src/main/res/value and value-night/style.xml
+```xml
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Theme applied to the Android Window while the process is starting when the OS's Dark Mode setting is off -->
+    <style name="LaunchTheme" parent="@android:style/Theme.Light.NoTitleBar">
+        <!-- Show a splash screen on the activity. Automatically removed when
+             Flutter draws its first frame -->
+        <item name="android:windowBackground">@drawable/launch_background</item>
+        <item name="android:windowDrawsSystemBarBackgrounds">true</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+    </style>
+    <!-- Theme applied to the Android Window as soon as the process has started.
+         This theme determines the color of the Android Window while your
+         Flutter UI initializes, as well as behind your Flutter UI while its
+         running.
+         This Theme is only used starting with V2 of Flutter's Android embedding. -->
+    <style name="NormalTheme" parent="@android:style/Theme.Light.NoTitleBar">
+        <item name="android:windowBackground">?android:colorBackground</item>
+        <item name="android:windowDrawsSystemBarBackgrounds">true</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+    </style>
+</resources>
+```
+</details>
+
 <br />
 
 > **Huawei:** An additional setup if your application is using hms with ProX.
@@ -710,7 +704,7 @@ Also, add `android:name=".Application"` in AndroidManifest.xml.
 		<key>NSAllowsArbitraryLoads</key>
 		<true/>
 	</dict>
-	<key>UIUserInterfaceStyle</key>
+  <key>UIUserInterfaceStyle</key>
 	<string>Light</string>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<false/>
@@ -797,3 +791,23 @@ Current Flutter & Dart compatibility breakdown:
 ## License
 
 This project is licensed under the MIT License.
+
+Copyright (c) 2021 Dexter Gold
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
