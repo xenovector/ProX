@@ -1,6 +1,6 @@
 # ProX
 `[Supported Null Safety]`<br/>
-### ProX is a ready setup project library using enhanced GetX feature.
+### ProX is a ready setup project template rely on GetX.
 <br/>
 
 ## Setup
@@ -20,7 +20,7 @@ pod 'DexterSwift'
 ```dart
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'ProX/export.dart';
+import 'ProX/Core/export.dart';
 // Location
 //import 'ProX/Controller/location_controller.dart';
 // Notification
@@ -206,9 +206,6 @@ bool isHMS = await ProX.isHMS():
 // bool, check device service is running on GMS (google service) or not.
 bool isGMS = await ProX.isGMS():
 ```
-<br />
-
-> **Reminder:** Always remember to import `package:prox/export.dart`'
 <br />
 
 ### Error Hanlding
@@ -590,17 +587,24 @@ class MainActivity: FlutterActivity() {
 
 <details><summary><strong>Step 5:</strong></summary>
 
-Under
-`android/app/src/main/res/draweble/launch_background.xml`
-and
-`android/app/src/main/res/draweble-v21/launch_background.xml`
+1. Under <br />
+`android/app/src/main/res/draweble/launch_background.xml` <br />
+`android/app/src/main/res/draweble-v21/launch_background.xml` <br />
+change following to:
 
 ```xml
-<!-- <item android:drawable="?android:colorBackground" /> -->
+<!-- follow device light/dark theme setting-->
+<item android:drawable="?android:colorBackground" />
+
+<!-- as your theme, pick either one-->
 <item android:drawable="@android:color/white" />
+<item android:drawable="@android:color/black" />
 ```
 <br />
-2. under android/app/src/main/res/value and value-night/style.xml
+
+2. Replace the following: <br />
+
+`android/app/src/main/res/value/style.xml` <br />
 ```xml
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
@@ -619,6 +623,33 @@ and
          running.
          This Theme is only used starting with V2 of Flutter's Android embedding. -->
     <style name="NormalTheme" parent="@android:style/Theme.Light.NoTitleBar">
+        <item name="android:windowBackground">?android:colorBackground</item>
+        <item name="android:windowDrawsSystemBarBackgrounds">true</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+    </style>
+</resources>
+```
+
+`android/app/src/main/res/value-night/style.xml` <br />
+```xml
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Theme applied to the Android Window while the process is starting when the OS's Dark Mode setting is off -->
+    <style name="LaunchTheme" parent="@android:style/Theme.Black.NoTitleBar">
+        <!-- Show a splash screen on the activity. Automatically removed when
+             Flutter draws its first frame -->
+        <item name="android:windowBackground">@drawable/launch_background</item>
+        <item name="android:windowDrawsSystemBarBackgrounds">true</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+    </style>
+    <!-- Theme applied to the Android Window as soon as the process has started.
+         This theme determines the color of the Android Window while your
+         Flutter UI initializes, as well as behind your Flutter UI while its
+         running.
+         This Theme is only used starting with V2 of Flutter's Android embedding. -->
+    <style name="NormalTheme" parent="@android:style/Theme.Black.NoTitleBar">
         <item name="android:windowBackground">?android:colorBackground</item>
         <item name="android:windowDrawsSystemBarBackgrounds">true</item>
         <item name="android:statusBarColor">@android:color/transparent</item>
@@ -763,6 +794,9 @@ Add the following to your `info.plist` based on your own use case:
 </details>
 <br />
 
+## Reminder
+Remember to include flutter `.gitignore` at your project level, you can pull out one from ProX project level to your project level if you doesn't have one.
+
 ## Requirements
 
 Current Flutter & Dart compatibility breakdown:
@@ -771,9 +805,10 @@ Current Flutter & Dart compatibility breakdown:
 | --------------- | ------------ |
 | 2.x	            | 2.12.x       |
 
+| Android | iOS |
+| ---------- | ---- |
+| Min Sdk	21 | 10.0 |
 
-**Android:** Min Sdk	21 <br />
-**iOS:** platform: ios, '10.0' <br />
 <br />
 
 ## Authors
