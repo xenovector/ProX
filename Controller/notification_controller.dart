@@ -7,21 +7,12 @@ import 'package:event_bus/event_bus.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:huawei_push/huawei_push_library.dart' as hms;
-
+import '../model/notificationData.dart';
 import '../Api/api_controller.dart';
 import '../Core/export.dart';
 
 // //EventBus eventBus;
 String pushToken = '';
-
-class NotificationData {
-  final String title;
-  final String message;
-  final String id;
-  final Map<String, dynamic>? payload;
-
-  NotificationData(this.title, this.message, this.id, {this.payload});
-}
 
 //FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin;
 final FirebaseMessaging messaging = FirebaseMessaging.instance;

@@ -235,7 +235,6 @@ This project template using not only getx but many other plugin as well, below w
   lottie:
   connectivity:
   http:
-  http:
   dio:
   event_bus:
   path_provider:
@@ -246,6 +245,7 @@ This project template using not only getx but many other plugin as well, below w
   flutter_inappwebview:
   flutter_keyboard_visibility:
   extended_image:
+  audioplayers:
   auto_size_text: ^3.0.0-nullsafety.0
   vibration: ^1.7.4-nullsafety.0
   version:
@@ -403,7 +403,7 @@ in `/android/build.gradle` , add those which mark with `*`.
 
 ```swift
 buildscript {
-    ext.kotlin_version = '1.3.50'
+    ext.kotlin_version = '1.5.10' //<-- change it from '1.3.50'
     repositories {
         google()
         jcenter()
@@ -490,8 +490,8 @@ import androidx.annotation.NonNull
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
-import com.google.android.gms.common.GoogleApiAvailability
 import io.flutter.plugins.GeneratedPluginRegistrant
+import com.google.android.gms.common.GoogleApiAvailability
 
 
 class MainActivity: FlutterActivity() {
@@ -661,7 +661,7 @@ change following to:
 
 <br />
 
-> **Huawei:** An additional setup if your application is using hms with ProX.
+> **Huawei:** An additional setup if your application is using **HMS** with ProX.
 
 <details><summary><strong>Step 1:</strong></summary>
 
