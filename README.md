@@ -257,11 +257,8 @@ This project template using not only getx but many other plugin as well, below w
   # --- ------- --- ---
 
   # --- camera use ---
-  camera: #^0.8.1
-    git:
-      url: https://github.com/bottlepay/plugins.git
-      path: packages/camera/camera
-      ref: android-rework
+  camera:
+  image_picker:
   pinch_zoom: ^0.1.0
   native_device_orientation: ^1.0.0
   align_positioned: ^2.0.0
@@ -300,8 +297,8 @@ This project template using not only getx but many other plugin as well, below w
 ```
 ```yaml
 assets:
-    - lib/ProX/assets/
-    - lib/ProX/assets/lottie/
+    - lib/ProX/Assets/
+    - lib/ProX/Assets/lottie/
 ```
 <br />
 
@@ -754,13 +751,13 @@ There is a lot of permission needed to be add into your project based on use cas
 <details><summary><strong>Android</strong></summary>
 
 ````xml
-<uses-permission android:name="android.permission.INTERNET" />
-<uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
-<uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
-<uses-permission android:name="android.permission.CAMERA" />
-<uses-permission android:name="android.permission.ACCESS_COARES_LOCATION" />
-<uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
-<uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" />
+  <uses-permission android:name="android.permission.INTERNET" />
+  <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+  <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+  <uses-permission android:name="android.permission.CAMERA" />
+  <uses-permission android:name="android.permission.ACCESS_COARES_LOCATION" />
+  <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+  <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" />
 ````
 </details>
 
@@ -768,28 +765,28 @@ There is a lot of permission needed to be add into your project based on use cas
 
 Add the following to your `info.plist` based on your own use case:
 ````xml
-<key>NSPhotoLibraryUsageDescription</key>
-<string>$(PRODUCT_NAME) would like to request the permission for you to select picture for profile image.</string>
-<key>NSCameraUsageDescription</key>
-<string>$(PRODUCT_NAME) would like to request the permission for you to take picture for profile image.</string>
-<key>NSMicrophoneUsageDescription</key>
-<string>$(PRODUCT_NAME) would like to request the permission to record your voice for video recording.</string>
-<key>NSLocationAlwaysUsageDescription</key>
-<string>$(PRODUCT_NAME) would like to request the permission to getting your current location for pre initialise the services location or add it for favourite location.</string>
-<key>NSLocationWhenInUseUsageDescription</key>
-<string>$(PRODUCT_NAME) would like to request the permission to getting your current location for pre initialise the services location or add it for favourite location.</string>
-<key>NSAppleMusicUsageDescription</key>
-<string>$(PRODUCT_NAME) need access your Media to function properly.</string>
-<key>NSCalendarsUsageDescription</key>
-<string>$(PRODUCT_NAME) need access your Calendars to function properly.</string>
-<key>NSContactsUsageDescription</key>
-<string>$(PRODUCT_NAME) requires contacts access to function properly.</string>
-<key>NSMotionUsageDescription</key>
-<string>$(PRODUCT_NAME) requires motion access to function properly.</string>
-<key>NSPhotoLibraryAddUsageDescription</key>
-<string>$(PRODUCT_NAME) need gallery access to upload new profile picture.</string>
-<key>NSSpeechRecognitionUsageDescription</key>
-<string>$(PRODUCT_NAME) requires Speech access to function properly.</string>
+  <key>NSPhotoLibraryUsageDescription</key>
+  <string>$(PRODUCT_NAME) would like to request the permission for you to select picture for profile image.</string>
+  <key>NSCameraUsageDescription</key>
+  <string>$(PRODUCT_NAME) would like to request the permission for you to take picture for profile image.</string>
+  <key>NSMicrophoneUsageDescription</key>
+  <string>$(PRODUCT_NAME) would like to request the permission to record your voice for video recording.</string>
+  <key>NSLocationAlwaysUsageDescription</key>
+  <string>$(PRODUCT_NAME) would like to request the permission to getting your current location for pre initialise the services location or add it for  favourite location.</string>
+  <key>NSLocationWhenInUseUsageDescription</key>
+  <string>$(PRODUCT_NAME) would like to request the permission to getting your current location for pre initialise the services location or add it for  favourite location.</string>
+  <key>NSAppleMusicUsageDescription</key>
+  <string>$(PRODUCT_NAME) need access your Media to function properly.</string>
+  <key>NSCalendarsUsageDescription</key>
+  <string>$(PRODUCT_NAME) need access your Calendars to function properly.</string>
+  <key>NSContactsUsageDescription</key>
+  <string>$(PRODUCT_NAME) requires contacts access to function properly.</string>
+  <key>NSMotionUsageDescription</key>
+  <string>$(PRODUCT_NAME) requires motion access to function properly.</string>
+  <key>NSPhotoLibraryAddUsageDescription</key>
+  <string>$(PRODUCT_NAME) need gallery access to upload new profile picture.</string>
+  <key>NSSpeechRecognitionUsageDescription</key>
+  <string>$(PRODUCT_NAME) requires Speech access to function properly.</string>
 ````
 </details>
 <br />

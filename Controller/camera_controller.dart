@@ -2,6 +2,7 @@ import 'dart:io';
 import 'dart:async';
 import 'dart:typed_data';
 import 'package:camera/camera.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
 import 'package:lottie/lottie.dart';
 import 'package:pinch_zoom/pinch_zoom.dart';
@@ -9,14 +10,90 @@ import 'package:native_device_orientation/native_device_orientation.dart';
 import 'package:align_positioned/align_positioned.dart';
 import 'package:image/image.dart' as img;
 import 'package:image_editor/image_editor.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:image_picker/image_picker.dart' as imgPicker;
 import 'package:flutter/material.dart';
 import '../Core/export.dart';
 
 typedef OnRotatedOverLayer = Widget Function(bool isPortrait);
-
+/// ProX Custom Camera Controller.
 /// [addFrontLayer] Return true if orientation is portrait mode, else false.
 Future<File?> showCameraController({CameraLensDirection? lensDirection, OnRotatedOverLayer? addFrontLayer}) {
-  return Get.to(CameraProXPage(), binding: CameraProXBinding(lensDirection ?? CameraLensDirection.back, addFrontLayer))!;
+  return Get.to(CameraProXPage(),
+      binding: CameraProXBinding(lensDirection ?? CameraLensDirection.back, addFrontLayer))!;
+}
+
+/// Convenience Image Picker.
+Future<File?> showImagePicker(BuildContext context) async {
+  int? index;
+  if (Platform.isIOS) {
+    index = await showCupertinoModalPopup(
+        context: context,
+        builder: (BuildContext context) {
+          return CupertinoActionSheet(
+              title: Text('\nWhere would you like your image picked?\n'),
+              //message: Text('options:'),
+              actions: [
+                CupertinoActionSheetAction(
+                    child: Text('Camera'),
+                    onPressed: () {
+                      Get.back(result: 1);
+                    }),
+                CupertinoActionSheetAction(
+                    child: Text('Photo Gallery'),
+                    onPressed: () {
+                      Get.back(result: 2);
+                    }),
+              ],
+              cancelButton: CupertinoActionSheetAction(child: Text('Cancel'), onPressed: Get.back));
+        });
+  } else {
+    index = await showModalBottomSheet(
+        context: context,
+        builder: (BuildContext context) {
+          return Container(
+            child: Wrap(
+              children: <Widget>[
+                Container(
+                  padding: EdgeInsets.only(left: 20, top: 8, bottom: 5),
+                  child: Text('\nWhere would you like your image picked?\n', style: TextStyle(fontSize: 15)),
+                ),
+                line(horizontal: 10),
+                ListTile(
+                    leading: Icon(Icons.camera_alt),
+                    title: Text('Camera'),
+                    onTap: () {
+                      Get.back(result: 1);
+                    }),
+                ListTile(
+                    leading: Icon(Icons.photo),
+                    title: Text('Photo Gallery'),
+                    onTap: () {
+                      Get.back(result: 2);
+                    }),
+                line(horizontal: 10),
+                ListTile(
+                  leading: Icon(Icons.cancel),
+                  title: Text('Cancel'),
+                  onTap: Get.back,
+                ),
+              ],
+            ),
+          );
+        });
+  }
+  PickedFile? pickedFile;
+  switch (index) {
+    case 1:
+      pickedFile = await ImagePicker().getImage(source: imgPicker.ImageSource.camera);
+      break;
+    case 2:
+      pickedFile = await ImagePicker().getImage(source: imgPicker.ImageSource.gallery);
+      break;
+    default:
+      break;
+  }
+  return pickedFile == null ? null : File(pickedFile.path);
 }
 
 /*
@@ -96,14 +173,20 @@ class CameraProXController extends ProXController with SingleGetTickerProviderMi
     try {
       cameras = await availableCameras();
       if (cameras.length > 0) {
-        backLens = cameras.firstWhere((e) => e.lensDirection == CameraLensDirection.back, orElse: () => CameraDescription(name: 'null', lensDirection: CameraLensDirection.back, sensorOrientation: 0));
+        backLens = cameras.firstWhere((e) => e.lensDirection == CameraLensDirection.back,
+            orElse: () =>
+                CameraDescription(name: 'null', lensDirection: CameraLensDirection.back, sensorOrientation: 0));
         if (backLens!.name == 'null') backLens = null;
-        frontLens = cameras.firstWhere((e) => e.lensDirection == CameraLensDirection.front, orElse: () => CameraDescription(name: 'null', lensDirection: CameraLensDirection.front, sensorOrientation: 0));
+        frontLens = cameras.firstWhere((e) => e.lensDirection == CameraLensDirection.front,
+            orElse: () =>
+                CameraDescription(name: 'null', lensDirection: CameraLensDirection.front, sensorOrientation: 0));
         if (frontLens!.name == 'null') frontLens = null;
-        externalLens = cameras.firstWhere((e) => e.lensDirection == CameraLensDirection.external, orElse: () => CameraDescription(name: 'null', lensDirection: CameraLensDirection.external, sensorOrientation: 0));
+        externalLens = cameras.firstWhere((e) => e.lensDirection == CameraLensDirection.external,
+            orElse: () =>
+                CameraDescription(name: 'null', lensDirection: CameraLensDirection.external, sensorOrientation: 0));
         if (externalLens!.name == 'null') externalLens = null;
-        CameraDescription? preferredLens =
-            cameras.firstWhere((e) => e.lensDirection == preferLensDirection, orElse: () => CameraDescription(name: 'null', lensDirection: preferLensDirection, sensorOrientation: 0));
+        CameraDescription? preferredLens = cameras.firstWhere((e) => e.lensDirection == preferLensDirection,
+            orElse: () => CameraDescription(name: 'null', lensDirection: preferLensDirection, sensorOrientation: 0));
         if (preferredLens.name == 'null') preferredLens = null;
         if (preferredLens != null) {
           onSelectNewCamera(preferredLens);
@@ -237,7 +320,7 @@ class CameraProXController extends ProXController with SingleGetTickerProviderMi
             ),*/
                   Transform.scale(
                 scale: 3.5,
-                child: Lottie.asset('assets/lottie/switch_camera.json',
+                child: Lottie.asset('lib/ProX/Assets/lottie/switch_camera.json',
                     controller: lottieCtrl, repeat: false, animate: false, onLoaded: (composition) {
                   if (didInit) return;
                   didInit = true;
@@ -261,7 +344,8 @@ class CameraProXController extends ProXController with SingleGetTickerProviderMi
               : haveBackLens
                   ? backLens
                   : null;
-          if (lens != null) lottieCtrl?.animateTo(1, duration: animateDuration)?..whenComplete(() => lottieCtrl?.reset());
+          if (lens != null)
+            lottieCtrl?.animateTo(1, duration: animateDuration)?..whenComplete(() => lottieCtrl?.reset());
         } else if (controller?.description == externalLens) {
           lens = haveBackLens
               ? backLens
@@ -498,10 +582,7 @@ class CameraProXPage extends StatelessWidget {
   Widget roundedButton(IconData icon, Color color, Function() callback) {
     return InkWell(
       child: ClipOval(
-        child: Container(
-            padding: EdgeInsets.all(10),
-            color: color,
-            child: Icon(icon, size: 36, color: Colors.white)),
+        child: Container(padding: EdgeInsets.all(10), color: color, child: Icon(icon, size: 36, color: Colors.white)),
       ),
       onTap: callback,
     );
