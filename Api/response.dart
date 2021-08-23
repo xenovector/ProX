@@ -11,9 +11,10 @@ class ResponseData<R extends RData> {
   final R? data;
   final List<R>? datas;
   final int? total;
+  final dynamic rawData;
   final RequestException? error;
 
-  const ResponseData({this.status = false, this.code = 0, this.message = '', this.data, this.datas, this.total, this.error});
+  const ResponseData({this.status = false, this.code = 0, this.message = '', this.data, this.datas, this.total, this.rawData, this.error});
 
   factory ResponseData.fromJson(Map<String, dynamic>? json) {
     if (json == null) return ResponseData<R>();
@@ -50,9 +51,13 @@ class ResponseData<R extends RData> {
         break;
     }
     return ResponseData<R>(
-      status: json['status'],
-      code: json['code'],
-      message: json['message'],
+      status: json.containsKey('status')
+          ? json['status']
+          : json.containsKey('success')
+              ? json['success']
+              : true,
+      code: json.containsKey('code') ? json['code'] : 0,
+      message: json.containsKey('message') ? json['message'] : '',
       data: mData,
       datas: mDatas,
       //total: json['total'] ?? 0,

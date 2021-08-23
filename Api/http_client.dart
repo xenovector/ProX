@@ -4,10 +4,12 @@ import 'dart:convert';
 import 'package:http/http.dart';
 import 'package:path/path.dart';
 import 'package:connectivity/connectivity.dart';
+import 'package:prox/ProX/i18n/app_language.dart';
 import 'response.dart';
 import 'api_setting.dart';
 import '../Helper/device.dart';
 import '../Core/pro_x_storage.dart' as ProXStorage;
+import '../Core/extension.dart';
 
 typedef OnSuccess = void Function(String message);
 typedef OnFail = Future<bool> Function(int code, String message, {Function()? tryAgain});
@@ -93,12 +95,15 @@ RequestException onObjectException(Object e, OnFail onFail) {
 }
 
 // Request Body Engine
-Future<ResponseData<T>> requestFilter<T extends RData>(RequestTask request, HttpMethod httpMethod,
-    {bool requestRaw = false, bool getRawData = false, bool requestEndpointUrl = false}) async {
+Future<ResponseData<T>> requestFilter<T extends RData>(RequestTask request,
+    {HttpMethod httpMethod = HttpMethod.post,
+    bool requestRaw = false,
+    bool getRawData = false,
+    bool requestEndpointUrl = false}) async {
   bool noInternetion = !(await checkInternetConnection());
 
   if (noInternetion) {
-    throw RequestException(404, '');
+    throw RequestException(404, 'No Internet Connection, Please check your network and try again.');
   }
 
   var szUrl = requestRaw
@@ -116,15 +121,15 @@ Future<ResponseData<T>> requestFilter<T extends RData>(RequestTask request, Http
               HttpHeaders.acceptHeader: acceptHeader,
               HttpHeaders.contentTypeHeader: httpMethod == HttpMethod.multipart ? multipartHeader : contentHeader,
               'App-Version': DevicePreferences.version,
-              'Os-Type': DevicePreferences.platform,
-              "Version-Type": versionType
+              'Device': DevicePreferences.platform,
+              'locale': AppLanguage.appLocale?.languageCode.getEmptyOrNull ?? 'en',
             }
           : {
               HttpHeaders.acceptHeader: acceptHeader,
               HttpHeaders.contentTypeHeader: contentHeader,
               'App-Version': DevicePreferences.version,
-              'Os-Type': DevicePreferences.platform,
-              "Version-Type": versionType
+              'Device': DevicePreferences.platform,
+              'locale': AppLanguage.appLocale?.languageCode.getEmptyOrNull ?? 'en',
             };
   if (request.extraHeader != null) {
     request.extraHeader!.forEach((key, value) {
@@ -152,6 +157,11 @@ Future<ResponseData<T>> requestFilter<T extends RData>(RequestTask request, Http
       break;
     case HttpMethod.get:
       response = await get(Uri.parse(szUrl), headers: header).timeout(timeoutDuration).catchError((onError) {
+        //throw RequestException(-1, Constant.ConnectErr);
+      });
+      break;
+    case HttpMethod.put:
+      response = await put(Uri.parse(szUrl), headers: header).timeout(timeoutDuration).catchError((onError) {
         //throw RequestException(-1, Constant.ConnectErr);
       });
       break;

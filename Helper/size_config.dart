@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
-import '../Core/export.dart';
+import '../export.dart';
 
 class SizeConfig {
   static MediaQueryData? _mqData;

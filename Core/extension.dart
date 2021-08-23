@@ -55,7 +55,7 @@ extension ProXString on String {
     return false;
   }
 
-  String? get reEmptyOrNull {
+  String? get getEmptyOrNull {
     if (this == '') return null;
     return this;
   }
@@ -95,7 +95,7 @@ extension ProXNullableString on String? {
     return false;
   }
 
-  String? get reEmptyOrNull {
+  String? get getEmptyOrNull {
     if (this == null || this == '') return null;
     return this;
   }

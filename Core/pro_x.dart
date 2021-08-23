@@ -7,7 +7,7 @@ import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
 import 'package:flutter_statusbarcolor_ns/flutter_statusbarcolor_ns.dart';
 //import 'package:huawei_hmsavailability/huawei_hmsavailability.dart';
 import 'package:lottie/lottie.dart';
-import 'export.dart';
+import '../export.dart';
 
 class ProX {
   /// Set a default background color if needed, default value is `Colors.white`.
@@ -111,18 +111,18 @@ class ProX {
 
   static MethodChannel _methodChannel = MethodChannel('com.prox.method_channel/prox');
 
-/// 0: HMS Core (APK) is available.
-///
-/// 1: No HMS Core (APK) is found on device.
-///
-/// 2: HMS Core (APK) installed is out of date.
-///
-/// 3: HMS Core (APK) installed on the device is unavailable.
-///
-/// 9: HMS Core (APK) installed on the device is not the official version.
-///
-/// 21: The device is too old to support HMS Core (APK)
-///
+  /// 0: HMS Core (APK) is available.
+  ///
+  /// 1: No HMS Core (APK) is found on device.
+  ///
+  /// 2: HMS Core (APK) installed is out of date.
+  ///
+  /// 3: HMS Core (APK) installed on the device is unavailable.
+  ///
+  /// 9: HMS Core (APK) installed on the device is not the official version.
+  ///
+  /// 21: The device is too old to support HMS Core (APK)
+  ///
   static Future<bool> isHMS() async {
     if (Platform.isIOS) return false;
     //HmsApiAvailability client = new HmsApiAvailability();
@@ -183,6 +183,7 @@ typedef GeneralErrorHandle = Future<bool> Function(int code, String msg, {Functi
 class ProXController extends GetxController with WidgetsBindingObserver implements GeneralCallBack {
   RxBool isLoading = false.obs;
   RxString selectedLanguage = Get.locale?.languageCode.obs ?? 'en'.obs;
+  double _horizontalDown = 0;
   //StreamSubscription subscription;
 
   @override
@@ -240,7 +241,6 @@ class ProXController extends GetxController with WidgetsBindingObserver implemen
 
   @override
   Future<bool> onFailed(int code, String msg, {Function()? tryAgain}) async {
-    if (ProX.onFailed == null) return true;
     return ProX.onFailed(code, msg, tryAgain: tryAgain);
   }
 }
@@ -250,7 +250,16 @@ class ProXWidget<T extends ProXController> extends GetView<T> {
   final Color? appBarColor;
   final Gradient? appBarGradient;
   final Widget child;
-  ProXWidget({this.appBar, this.appBarColor, this.appBarGradient, required this.child});
+  final Color? customBackgroundColor;
+  final String? customBackgroundImage;
+
+  ProXWidget(
+      {this.appBar,
+      this.appBarColor,
+      this.appBarGradient,
+      required this.child,
+      this.customBackgroundColor,
+      this.customBackgroundImage});
 
   @override
   Widget build(BuildContext context) {
@@ -258,56 +267,74 @@ class ProXWidget<T extends ProXController> extends GetView<T> {
       extendBodyBehindAppBar: true,
       body: Obx(() => WillPopScope(
             onWillPop: controller.onHandleWillPop,
-            child: KeyboardDismissOnTap(
-              child: MediaQuery(
-                data: Get.mediaQuery.copyWith(textScaleFactor: 1.0),
-                child: Stack(
-                  children: [
-                    Positioned.fill(child: ProX.defaultBackgroundImageAssetsPath == null ? Container(color: ProX.defaultBackgroundColor) : Image.asset(ProX.defaultBackgroundImageAssetsPath!, fit: BoxFit.cover)),
-                    Positioned.fill(
-                        top: appBar == null ? 0 : SizeConfig.topSafeAreaHeight + kToolbarHeight, child: child),
-                    appBar == null
-                        ? Center()
-                        : Positioned(
-                            left: 0,
-                            right: 0,
-                            top: 0,
-                            child: Container(
-                                height: SizeConfig.topSafeAreaHeight + kToolbarHeight,
-                                width: double.infinity,
-                                decoration: BoxDecoration(
-                                  color: appBarGradient == null ? appBarColor ?? Colors.white : null,
-                                  gradient: appBarGradient,
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: Colors.grey.withOpacity(0.5),
-                                      spreadRadius: 0,
-                                      blurRadius: 7,
-                                      offset: Offset(0, 2),
-                                    ),
-                                  ],
-                                ),
-                                child: Column(
-                                  children: [SizedBox(height: SizeConfig.topSafeAreaHeight), Expanded(child: appBar!)],
-                                )),
-                          ),
-                    Positioned.fill(
-                        child: controller.isLoading.isTrue
-                            ? GestureDetector(
-                                child: ProX.defaultLoadingWidget ??
-                                    Container(
-                                        width: double.infinity,
-                                        height: double.infinity,
-                                        color: Colors.black26,
-                                        child: Center(
-                                          child: CircularProgressIndicator(),
-                                        )),
-                                onTap: () {
-                                  //controller.isLoading(false);
-                                },
-                              )
-                            : Center()),
-                  ],
+            child: GestureDetector(
+              onHorizontalDragDown: (details) {
+                controller._horizontalDown = details.localPosition.dx;
+              },
+              onHorizontalDragEnd: (details) async {
+                if (controller._horizontalDown < 5) {
+                  bool needPop = await controller.onHandleWillPop();
+                  if (needPop) Get.back();
+                }
+              },
+              child: KeyboardDismissOnTap(
+                child: MediaQuery(
+                  data: Get.mediaQuery.copyWith(textScaleFactor: 1.0),
+                  child: Stack(
+                    children: [
+                      Positioned.fill(
+                          child: (customBackgroundImage != null || ProX.defaultBackgroundImageAssetsPath != null)
+                              ? Image.asset(customBackgroundImage ?? ProX.defaultBackgroundImageAssetsPath!,
+                                  fit: BoxFit.cover)
+                              : Container(color: customBackgroundColor ?? ProX.defaultBackgroundColor)),
+                      Positioned.fill(
+                          top: appBar == null ? 0 : SizeConfig.topSafeAreaHeight + kToolbarHeight, child: child),
+                      appBar == null
+                          ? Center()
+                          : Positioned(
+                              left: 0,
+                              right: 0,
+                              top: 0,
+                              child: Container(
+                                  height: SizeConfig.topSafeAreaHeight + kToolbarHeight,
+                                  width: double.infinity,
+                                  decoration: BoxDecoration(
+                                    color: appBarGradient == null ? appBarColor ?? Colors.white : null,
+                                    gradient: appBarGradient,
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: Colors.grey.withOpacity(0.5),
+                                        spreadRadius: 0,
+                                        blurRadius: 7,
+                                        offset: Offset(0, 2),
+                                      ),
+                                    ],
+                                  ),
+                                  child: Column(
+                                    children: [
+                                      SizedBox(height: SizeConfig.topSafeAreaHeight),
+                                      Expanded(child: appBar!)
+                                    ],
+                                  )),
+                            ),
+                      Positioned.fill(
+                          child: controller.isLoading.isTrue
+                              ? GestureDetector(
+                                  child: ProX.defaultLoadingWidget ??
+                                      Container(
+                                          width: double.infinity,
+                                          height: double.infinity,
+                                          color: Colors.black26,
+                                          child: Center(
+                                            child: CircularProgressIndicator(),
+                                          )),
+                                  onTap: () {
+                                    //controller.isLoading(false);
+                                  },
+                                )
+                              : Center()),
+                    ],
+                  ),
                 ),
               ),
             ),

@@ -4,7 +4,7 @@ import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:sprintf/sprintf.dart';
 import 'reuseable_widget.dart';
 import 'util.dart';
-import '../Core/export.dart';
+import '../export.dart';
 import '../i18n/language_key.dart';
 
 class InAppBrowerBinding extends Bindings {

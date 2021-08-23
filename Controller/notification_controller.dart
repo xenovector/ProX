@@ -9,7 +9,7 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:huawei_push/huawei_push_library.dart' as hms;
 import '../model/notificationData.dart';
 import '../Api/api_controller.dart';
-import '../Core/export.dart';
+import '../export.dart';
 
 // //EventBus eventBus;
 String pushToken = '';

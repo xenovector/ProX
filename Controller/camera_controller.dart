@@ -13,7 +13,7 @@ import 'package:image_editor/image_editor.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:image_picker/image_picker.dart' as imgPicker;
 import 'package:flutter/material.dart';
-import '../Core/export.dart';
+import '../export.dart';
 
 typedef OnRotatedOverLayer = Widget Function(bool isPortrait);
 /// ProX Custom Camera Controller.

@@ -70,7 +70,8 @@ class AppLanguage {
   static List<String>? get supportLocale => _supportLocale;
 
   static ReadWriteValue<String> langCode = ReadWriteValue<String>(KEY_LANGUAGE_CODE, '', ProXStorage.box);
-  static ReadWriteValue<List<String>> suppCodes = ReadWriteValue<List<String>>(KEY_SUPPORTED_CODES, [], ProXStorage.box);
+  static ReadWriteValue<List<String>> suppCodes =
+      ReadWriteValue<List<String>>(KEY_SUPPORTED_CODES, [], ProXStorage.box);
   static ReadWriteValue<bool> didSetLocale = ReadWriteValue<bool>(KEY_DIDSET_LOCALE, false, ProXStorage.box);
 
   // Initializer.
@@ -134,11 +135,13 @@ class AppLanguage {
     });
     LabelSupport? labelSupport = res.data;
     bool haveResult = labelSupport != null;
-    if (haveResult) await Future.forEach(labelSupport.labelInfoList, (LabelInfo labelInfo) async => await LabelUtil.shared.writeLabelInto(labelInfo));
+    if (haveResult)
+      await Future.forEach(
+          labelSupport.labelInfoList, (LabelInfo labelInfo) async => await LabelUtil.shared.writeLabelInto(labelInfo));
     return LabelHandleError<T>((haveResult ? labelSupport.supportedLocale : []) as T, haveResult ? null : res.error);
   }
 
-  static Future<LabelInfo?> _loadTranslationFrom(String locale) async {
+  /*static Future<LabelInfo?> _loadTranslationFrom(String locale) async {
     ResponseData<LabelInfo>? res = await shared.getLabelWith<LabelInfo>(locale, (code, msg, {tryAgain}) async {
       print('Error: code: $code,\nmsg: $msg');
       return true;
@@ -151,5 +154,10 @@ class AppLanguage {
     } else {
       return null;
     }
+  }*/
+
+  static Future<LabelInfo?> _loadTranslationFrom(String locale) async {
+    LabelInfo? labelInfo = await LabelUtil.shared.getLabelWithLocale(locale);
+    return labelInfo;
   }
 }

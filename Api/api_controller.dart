@@ -9,7 +9,7 @@ Future<ResponseData<RData>?> getData(OnFail onFail) async {
   final urlPath = '';
   var request = RequestTask.set(urlPath, headerType: HeaderType.standard);
   try {
-    ResponseData<RData> response = await requestFilter<RData>(request, HttpMethod.get);
+    ResponseData<RData> response = await requestFilter<RData>(request, httpMethod: HttpMethod.get);
     return response;
   } catch (e) {
     onObjectException(e, onFail);
@@ -22,7 +22,7 @@ Future<Preload?> getPreload(OnFail onFail) async {
   final urlPath = '/preload';
   var request = RequestTask.set(urlPath, headerType: HeaderType.standard);
   try {
-    ResponseData<Preload> response = await requestFilter<Preload>(request, HttpMethod.post);
+    ResponseData<Preload> response = await requestFilter<Preload>(request);
     return response.data;
   } catch (e) {
     onObjectException(e, onFail);

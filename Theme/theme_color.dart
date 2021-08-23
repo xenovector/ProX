@@ -25,14 +25,16 @@ class ThemeColor {
   static const lineLight = Color(0xFFC3C3C3);
   static const lineDark = Color(0xFFC3C3C3);
 
+  //ProX's Color
+  static const disable = Color(0x29000000);
+  static const tickGreen = Color(0xFF1EA328);
+  static const dialog_error_color = Color(0xFFFC6666);
+
   // Custom
   static const secondary = Color(0xFFFFAF46);
   static const light_black = Color(0xFFA8A8A8);
   static const text_color = Color(0xFF000000);
   static const text_color_contrast = Color(0xFFFFFFFF);
-  static const disable = Color(0x29000000);
-  static const tickGreen = Color(0xFF1EA328);
-  static const dialog_error_color = Color(0xFFFC6666);
 
   /// ThemeSwatch
   static const MaterialColor swatch = MaterialColor(0xFF2C92CE, _color);

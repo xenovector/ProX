@@ -11,7 +11,7 @@ import 'package:vibration/vibration.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:path_provider/path_provider.dart';
 import '../model/notificationData.dart';
-import '../Core/export.dart';
+import '../export.dart';
 
 void showFlash(String title, String message, {NotificationData? data}) {
   Get.snackbar(title, message,
@@ -278,12 +278,26 @@ void openAppStore({String? id}) async {
     bool isHMS = await ProX.isHMS();
     //if (isHMS && (ProX.hmsAppID != null && ProX.hmsAppID != '')) {
     if (isHMS) {
-      url = 'https://appgallery.cloud.huawei.com/marketshare/app/C${id ?? ProX.hmsAppID}';
+      String _id = id ?? ProX.hmsAppID;
+      if (_id.isEmptyOrNull) {
+        showConfirmDialog('Application Error', 'StoreID not found on HMS.', touchToDismiss: true);
+        return;
+      } else {
+        // ignore: unnecessary_brace_in_string_interps
+        url = 'https://appgallery.cloud.huawei.com/marketshare/app/C${_id}';
+      }
     } else {
       url = 'https://play.google.com/store/apps/details?id=${DevicePreferences.packageName}';
     }
   } else {
-    url = 'https://itunes.apple.com/us/app/id${id ?? ProX.iosAppID}?mt=8';
+    String _id = id ?? ProX.iosAppID;
+    if (_id.isEmptyOrNull) {
+      showConfirmDialog('Application Error', 'StoreID not found on HMS.', touchToDismiss: true);
+      return;
+    } else {
+      // ignore: unnecessary_brace_in_string_interps
+      url = 'https://itunes.apple.com/us/app/id${_id}?mt=8';
+    }
   }
   if (await canLaunch(url)) {
     print('opening: $url');
@@ -307,7 +321,7 @@ void call({String number = ''}) {
     // ignore: unnecessary_brace_in_string_interps
     launch('tel:${number}');
   } else {
-    launch('tel://${number.replaceAll(' ', '').reEmptyOrNull ?? number}');
+    launch('tel://${number.replaceAll(' ', '').getEmptyOrNull ?? number}');
   }
 }
 

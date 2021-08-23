@@ -1,6 +1,6 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
-import 'export.dart';
+import '../export.dart';
 
 Future<String> showProXDialog(String title, List<String> szList, {String? btnLabel}) async {
   ProXDialogController ctrl = Get.put(ProXDialogController());

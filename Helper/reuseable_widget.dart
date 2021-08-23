@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import '../Core/export.dart';
+import '../export.dart';
+import 'package:flutter_dialogs/flutter_dialogs.dart';
 
 Widget loader(bool isLoading, String label, {Color color = Colors.white}) {
   return (isLoading
@@ -407,3 +408,25 @@ Widget successTickWidget() {
   );
 }
 
+void showNativeDialog() {
+  showPlatformDialog(
+    context: Get.context!,
+    builder: (_) => BasicDialogAlert(
+      title: Text("Content Not Available"),
+      content: Text("You need to subscribe nurflix in order to continue."),
+      actions: <Widget>[
+        BasicDialogAction(
+          title: Text("Subscribe Now", style: TextStyle(fontSize: 15)),
+          onPressed: () {
+            Get.back();
+            launchURL('https://staging-qwert.nurflix.tv/register');
+          },
+        ),
+        BasicDialogAction(
+          title: Text("Cancel", style: TextStyle(fontSize: 15)),
+          onPressed: () => Get.back(),
+        ),
+      ],
+    ),
+  );
+}

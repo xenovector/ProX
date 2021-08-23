@@ -24,7 +24,7 @@ import 'package:huawei_location/location/fused_location_provider_client.dart';
 // import 'package:huawei_location/location/navigation_request.dart';
 // import 'package:huawei_location/location/navigation_result.dart';
 import 'package:huawei_location/permission/permission_handler.dart';
-import '../Core/export.dart';
+import '../export.dart';
 
 class ProXLocation {
   static ProXLocation shared = ProXLocation();

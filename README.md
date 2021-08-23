@@ -249,7 +249,7 @@ This project template using not only getx but many other plugin as well, below w
   auto_size_text: ^3.0.0-nullsafety.0
   vibration: ^1.7.4-nullsafety.0
   version:
-  permission_handler: ^8.0.1 # visit the site to setup for each platform.
+  permission_handler: # visit the site to setup for each platform.
 
   # --- listing use ---
   pull_to_refresh:

@@ -6,6 +6,7 @@ const ConnectErr = 'You may experiencing connection issue';
 //General Error Code
 const ForceUpdate = 999; //end with
 const LabelUpdate = 998; // end with
+const ForceLogout = 996; // end with
 const SessionExpired = 61; // end with
 const ServerError = 500;
 const InternalError = 0;
