@@ -4,7 +4,7 @@ import 'dart:convert';
 import 'package:http/http.dart';
 import 'package:path/path.dart';
 import 'package:connectivity/connectivity.dart';
-import 'package:prox/ProX/i18n/app_language.dart';
+import '../i18n/app_language.dart';
 import 'response.dart';
 import 'api_setting.dart';
 import '../Helper/device.dart';
