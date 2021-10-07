@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:io';
-import 'dart:ui' as ui;
 import 'date_time.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -10,7 +9,7 @@ import 'package:audioplayers/audioplayers.dart';
 import 'package:vibration/vibration.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:path_provider/path_provider.dart';
-import '../model/notificationData.dart';
+import 'package:prox/ProX/Controller/notification_controller.dart';
 import '../export.dart';
 
 void showFlash(String title, String message, {NotificationData? data}) {
@@ -326,26 +325,17 @@ void call({String number = ''}) {
 }
 
 Future<File> downloadFile(String url, String filename) async {
+  String dir = (await getApplicationDocumentsDirectory()).path;
+  String path = '$dir/$filename';
+  bool isExist = await File(path).exists();
+  if (isExist) return File(path);
   var httpClient = new HttpClient();
   var request = await httpClient.getUrl(Uri.parse(url));
   var response = await request.close();
   var bytes = await consolidateHttpClientResponseBytes(response);
-  String dir = (await getApplicationDocumentsDirectory()).path;
-  File file = new File('$dir/$filename');
+  File file = new File(path);
   await file.writeAsBytes(bytes);
   return file;
-}
-
-List<String> forceCastToStringList(List<dynamic> list) {
-  List<String> _list = [];
-  for (var item in list) {
-    if (item is String) {
-      _list.add(item);
-    } else {
-      _list.add(item.toString());
-    }
-  }
-  return _list;
 }
 
 void exitApp() async {
@@ -360,26 +350,7 @@ bool isValidEmail(String email) {
 
 
 
-class CirclePainter extends CustomPainter {
 
-  ui.Image? imageToDraw;
-  final Color _color;
-
-  CirclePainter(this._color);
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    var paint1 = Paint()
-      ..color = _color
-      ..style = PaintingStyle.fill;
-
-    canvas.drawCircle(Offset(size.width / 2, 120), 60, paint1);
-    // canvas.drawImage(imageToDraw!, Offset(size.width / 2, 0), paint1);
-  }
-
-  @override
-  bool shouldRepaint(CustomPainter oldDelegate) => true;
-}
 
 
 

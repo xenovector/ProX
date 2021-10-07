@@ -24,7 +24,7 @@ Future<File?> showCameraController({CameraLensDirection? lensDirection, OnRotate
 }
 
 /// Convenience Image Picker.
-Future<File?> showImagePicker(BuildContext context) async {
+Future<File?> showImagePicker(BuildContext context, {bool customCamera = true}) async {
   int? index;
   if (Platform.isIOS) {
     index = await showCupertinoModalPopup(
@@ -82,18 +82,24 @@ Future<File?> showImagePicker(BuildContext context) async {
           );
         });
   }
-  PickedFile? pickedFile;
+  File? pickedFile;
   switch (index) {
     case 1:
-      pickedFile = await ImagePicker().getImage(source: imgPicker.ImageSource.camera);
+      if (customCamera) {
+        pickedFile = await showCameraController();
+      } else {
+        XFile? xFile = await ImagePicker().pickImage(source: imgPicker.ImageSource.camera);
+        pickedFile = (xFile == null) ? null : File(xFile.path);
+      }
       break;
     case 2:
-      pickedFile = await ImagePicker().getImage(source: imgPicker.ImageSource.gallery);
+      XFile? xFile = await ImagePicker().pickImage(source: imgPicker.ImageSource.gallery);
+      pickedFile = (xFile == null) ? null : File(xFile.path);
       break;
     default:
       break;
   }
-  return pickedFile == null ? null : File(pickedFile.path);
+  return pickedFile;
 }
 
 /*
@@ -541,8 +547,9 @@ class CameraProXPage extends StatelessWidget {
                                           height: 60,
                                           width: 60,
                                           margin: EdgeInsets.all(5),
+                                          padding: EdgeInsets.all(5),
                                           decoration: BoxDecoration(
-                                            color: Colors.white,
+                                            color: Colors.grey[300],
                                             borderRadius: BorderRadius.circular(30),
                                             boxShadow: [
                                               BoxShadow(
@@ -553,7 +560,9 @@ class CameraProXPage extends StatelessWidget {
                                               ),
                                             ],
                                           ),
-                                          child: Center()),
+                                          child: Container(
+                                              decoration: BoxDecoration(
+                                                  color: Colors.white, borderRadius: BorderRadius.circular(25)))),
                                       onTap: () {
                                         ctrl.onTakePictureButtonPressed(orientation);
                                       }),

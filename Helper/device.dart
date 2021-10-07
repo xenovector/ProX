@@ -38,13 +38,12 @@ class DevicePreferences {
     }
 
     print(""" ═══════════════════════════════════════════════════════════════════════════════════
-            packageName: $packageName
-            version: $version
-            deviceID: $deviceId
-            platform: $platform
-            osVersion: $osVersion
-            model: $model
-          ═══════════════════════════════════════════════════════════════════════════════════
-    """);
+    packageName: $packageName
+    version: $version
+    deviceID: $deviceId
+    platform: $platform
+    osVersion: $osVersion
+    model: $model
+ ═══════════════════════════════════════════════════════════════════════════════════""");
   }
 }

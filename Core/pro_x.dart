@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
 import 'package:flutter_statusbarcolor_ns/flutter_statusbarcolor_ns.dart';
+import 'package:huawei_hmsavailability/huawei_hmsavailability.dart';
 //import 'package:huawei_hmsavailability/huawei_hmsavailability.dart';
 import 'package:lottie/lottie.dart';
 import '../export.dart';
@@ -28,10 +29,6 @@ class ProX {
 
   /// A reusable image place holder, default value is `lib/ProX/Assets/empty_img.png`.
   static String placeHolderImage = 'lib/ProX/Assets/empty_img.png';
-
-  void init() {}
-
-  void refresh() {}
 
   static Future<void> setStatusBarTextColor({bool isWhite = true}) async {
     await FlutterStatusbarcolor.setStatusBarWhiteForeground(isWhite);
@@ -125,11 +122,11 @@ class ProX {
   ///
   static Future<bool> isHMS() async {
     if (Platform.isIOS) return false;
-    //HmsApiAvailability client = new HmsApiAvailability();
-    //int status = await client.isHMSAvailable();
+    HmsApiAvailability client = new HmsApiAvailability();
+    int status = await client.isHMSAvailable();
     bool _isGMS = await isGMS();
-    return !_isGMS;
-    //return status == 0 && !_isGMS;
+    //return !_isGMS;
+    return status == 0 && !_isGMS;
     // -- Added !_isGMS to ensure the device have actually no GMS, else still can proceed GMS services.
   }
 
@@ -181,6 +178,7 @@ abstract class GeneralCallBack {
 typedef GeneralErrorHandle = Future<bool> Function(int code, String msg, {Function()? tryAgain});
 
 class ProXController extends GetxController with WidgetsBindingObserver implements GeneralCallBack {
+  var scaffoldKey = GlobalKey<ScaffoldState>();
   RxBool isLoading = false.obs;
   RxString selectedLanguage = Get.locale?.languageCode.obs ?? 'en'.obs;
   double _horizontalDown = 0;
@@ -233,6 +231,14 @@ class ProXController extends GetxController with WidgetsBindingObserver implemen
     });*/
   }
 
+  void openDrawer() {
+    scaffoldKey.currentState?.openDrawer();
+  }
+
+  void closeDrawer() {
+    scaffoldKey.currentState?.openEndDrawer();
+  }
+
   set changeLanguage(String lang) {
     Locale locale = new Locale(lang);
     Get.updateLocale(locale);
@@ -249,21 +255,29 @@ class ProXWidget<T extends ProXController> extends GetView<T> {
   final Widget? appBar;
   final Color? appBarColor;
   final Gradient? appBarGradient;
+  final bool appBarWithShadow;
+  final Drawer? drawer;
   final Widget child;
   final Color? customBackgroundColor;
   final String? customBackgroundImage;
 
   ProXWidget(
-      {this.appBar,
+      {Key? key,
+      this.appBar,
       this.appBarColor,
       this.appBarGradient,
+      this.appBarWithShadow = true,
+      this.drawer,
       required this.child,
       this.customBackgroundColor,
-      this.customBackgroundImage});
+      this.customBackgroundImage})
+      : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      key: controller.scaffoldKey,
+      drawer: drawer,
       extendBodyBehindAppBar: true,
       body: Obx(() => WillPopScope(
             onWillPop: controller.onHandleWillPop,
@@ -301,14 +315,16 @@ class ProXWidget<T extends ProXController> extends GetView<T> {
                                   decoration: BoxDecoration(
                                     color: appBarGradient == null ? appBarColor ?? Colors.white : null,
                                     gradient: appBarGradient,
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color: Colors.grey.withOpacity(0.5),
-                                        spreadRadius: 0,
-                                        blurRadius: 7,
-                                        offset: Offset(0, 2),
-                                      ),
-                                    ],
+                                    boxShadow: appBarWithShadow
+                                        ? [
+                                            BoxShadow(
+                                              color: Colors.grey.withOpacity(0.5),
+                                              spreadRadius: 0,
+                                              blurRadius: 7,
+                                              offset: Offset(0, 2),
+                                            ),
+                                          ]
+                                        : null,
                                   ),
                                   child: Column(
                                     children: [
@@ -392,4 +408,17 @@ class ProXWorkInProgressWidget extends StatelessWidget {
       ],
     )));
   }
+}
+
+const ProXShadow = [
+  BoxShadow(
+    color: Colors.black12,
+    offset: Offset(0, 1),
+    blurRadius: 2,
+  )
+];
+
+void printSuperLongText(String text) {
+  final pattern = RegExp('.{1,800}'); // 800 is the size of each chunk
+  pattern.allMatches(text).forEach((match) => print(match.group(0)));
 }

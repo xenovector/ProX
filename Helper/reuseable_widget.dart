@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:lottie/lottie.dart';
 import '../export.dart';
 import 'package:flutter_dialogs/flutter_dialogs.dart';
 
@@ -57,6 +58,28 @@ Widget themeButton(String text, onTapCallBack,
   );
 }
 
+Widget customThemeButton(String text, onTapCallBack,
+    {EdgeInsets padding = const EdgeInsets.symmetric(vertical: 12, horizontal: 6),
+    Color buttonColor = ThemeColor.main,
+    double fontSize = 16.5,
+    Color fontColor = Colors.white,
+    Color shadowColor = ThemeColor.main}) {
+  return Container(
+    child: ElevatedButton(
+      style: ElevatedButton.styleFrom(
+          elevation: 5,
+          primary: buttonColor,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20.0)),
+          shadowColor: shadowColor),
+      child: Padding(
+        padding: padding,
+        child: Text(text, style: TextStyle(color: fontColor, fontSize: fontSize, fontWeight: FontWeight.w600)),
+      ),
+      onPressed: onTapCallBack,
+    ),
+  );
+}
+
 Widget infinityButton(String text, onTapCallBack,
     {double height = 40,
     double radius = 20,
@@ -97,38 +120,50 @@ Widget infinityButton(String text, onTapCallBack,
 }
 
 Widget customAppBar(String title,
-    {bool withBackBtn = false, VoidCallback? callback, double? withProgress, Color progressColor = ThemeColor.main}) {
+    {bool withBackBtn = false,
+    VoidCallback? callback,
+    bool alignLeft = true,
+    Color fontColor = Colors.black,
+    Color backBtnColor = Colors.black,
+    double? withProgress,
+    Color progressColor = ThemeColor.main,
+    Widget? optionWidget}) {
+  Widget backBtn = withBackBtn
+      ? Row(
+          children: [
+            SizedBox(width: 10),
+            InkWell(
+              child: Container(
+                  padding: EdgeInsets.only(left: 15, right: 10),
+                  child: Icon(
+                    Icons.arrow_back_ios,
+                    color: backBtnColor,
+                  )),
+              onTap: () {
+                if (callback == null) {
+                  Get.back();
+                } else {
+                  callback();
+                }
+              },
+            )
+          ],
+        )
+      : Center();
   return Column(
     children: [
       Expanded(
         child: Row(
           children: [
-            Expanded(
-                child: withBackBtn
-                    ? Row(
-                        children: [
-                          SizedBox(width: 10),
-                          InkWell(
-                            child: Container(
-                                //height: double.infinity,
-                                padding: EdgeInsets.only(left: 15, right: 10),
-                                child: Icon(
-                                  Icons.arrow_back_ios,
-                                  color: ThemeColor.main,
-                                )),
-                            onTap: () {
-                              if (callback == null) {
-                                Get.back();
-                              } else {
-                                callback();
-                              }
-                            },
-                          )
-                        ],
-                      )
-                    : Center()),
-            Text(title, style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: ThemeColor.main)),
+            alignLeft ? backBtn : Expanded(child: backBtn),
+            if (alignLeft) SizedBox(width: 10),
+            Text(title,
+                style: TextStyle(
+                    fontSize: alignLeft ? 24 : 20,
+                    fontWeight: alignLeft ? FontWeight.w600 : FontWeight.bold,
+                    color: fontColor)),
             Expanded(child: Center()),
+            if (optionWidget != null) optionWidget
           ],
         ),
       ),
@@ -222,6 +257,53 @@ Widget customAppBar(String title,
         ),
       ));
 }*/
+
+Widget spacedRow({Widget? child, double space = 25}) {
+  return Row(
+    children: [
+      SizedBox(width: space),
+      Expanded(
+        child: child ?? Center(),
+      ),
+      SizedBox(width: space),
+    ],
+  );
+}
+
+Future<void> showSuccessLottie(String text) async {
+  showLottieDialog('assets/lottie/success.json', text);
+  await Future.delayed(Duration(milliseconds: 1500));
+  Get.back();
+  return;
+}
+
+Future<void> showFailedLottie(String text) async {
+  showLottieDialog('assets/lottie/failed.json', text);
+  await Future.delayed(Duration(milliseconds: 1500));
+  Get.back();
+  return;
+}
+
+void showLottieDialog(String lottieURL, String text) {
+  Get.dialog(
+    Material(
+      color: Colors.white,
+      child: Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Lottie.asset(lottieURL, height: 250, repeat: false),
+            Text(text,
+                textAlign: TextAlign.center,
+                style: TextStyle(color: ThemeColor.main, fontSize: 24, fontWeight: FontWeight.w500))
+          ],
+        ),
+      ),
+    ),
+    useSafeArea: false,
+    barrierDismissible: false,
+  );
+}
 
 Widget dialogWidget(String hint, TextEditingController controller,
     {TextInputType inputType = TextInputType.text,
@@ -408,24 +490,32 @@ Widget successTickWidget() {
   );
 }
 
-void showNativeDialog() {
-  showPlatformDialog(
+Future<bool> showNativeDialog(String title,
+    {String? message,
+    String actionText = 'OK',
+    bool needCancel = false,
+    String cancelText = 'Cancel',
+    Function()? onDone,
+    bool barrierDismissible = false}) async {
+  return await showPlatformDialog(
     context: Get.context!,
+    androidBarrierDismissible: barrierDismissible,
     builder: (_) => BasicDialogAlert(
-      title: Text("Content Not Available"),
-      content: Text("You need to subscribe nurflix in order to continue."),
+      title: Text(title),
+      content: message == null ? null : Text(message),
       actions: <Widget>[
         BasicDialogAction(
-          title: Text("Subscribe Now", style: TextStyle(fontSize: 15)),
+          title: Text(actionText, style: TextStyle(fontSize: 15)),
           onPressed: () {
-            Get.back();
-            launchURL('https://staging-qwert.nurflix.tv/register');
+            if (onDone != null) onDone();
+            Get.back(result: true);
           },
         ),
-        BasicDialogAction(
-          title: Text("Cancel", style: TextStyle(fontSize: 15)),
-          onPressed: () => Get.back(),
-        ),
+        if (needCancel)
+          BasicDialogAction(
+            title: Text(cancelText, style: TextStyle(fontSize: 15)),
+            onPressed: () => Get.back(result: false),
+          ),
       ],
     ),
   );

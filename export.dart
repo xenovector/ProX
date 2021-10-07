@@ -19,5 +19,54 @@ export 'Api/api_setting.dart';
 export 'Api/http_client.dart';
 export 'Api/response.dart';
 
-//import 'package:pull_to_refresh/pull_to_refresh.dart';
 //import 'ProX/export.dart';
+
+// ----- Pull to refresh example ----- //
+//import 'package:pull_to_refresh/pull_to_refresh.dart';
+
+// final refreshCtrl = RefreshController();
+// List<T> list = [];
+// int listingPage = 1;
+// bool isFinished = false;
+
+// isLoading(true);
+// List<T>? _list = await getList(1, onFailed);
+// list = _list ?? [];
+// isLoading(false);
+// update();
+
+// void onRefresh() async {
+//   listingPage = 1;
+//   isFinished = false;
+//   List<T>? _list = await getList(1, onFailed);
+//   if (_list != null && _list != []) list = _list;
+//   update();
+//   refreshCtrl.refreshCompleted(resetFooterState: true);
+// }
+
+// void onLoadMore() async {
+//   if (isFinished) {
+//     refreshCtrl.loadNoData();
+//   } else {
+//     List<T>? _list = await getList(listingPage + 1, onFailed);
+//     if (_list != null && _list != []) {
+//       listingPage += 1;
+//       list += _list;
+//       update();
+//       refreshCtrl.loadComplete();
+//     } else {
+//       isFinished = true;
+//       refreshCtrl.loadNoData();
+//     }
+//   }
+// }
+
+// SmartRefresher(
+//             enablePullDown: true,
+//             enablePullUp: true,
+//             controller: ctrl.refreshCtrl,
+//             onRefresh: ctrl.onRefresh,
+//             onLoading: ctrl.onLoadMore,
+
+
+

@@ -9,6 +9,14 @@ class Preload extends RData {
       states: State.listFromJson(json['country_states'])
     );
   }
+  static List<Preload> listFromJson(List? json) {
+    if (json == null) return [];
+    List<Preload> list = [];
+    for (var item in json) {
+      list.add(Preload.fromJson(item)!);
+    }
+    return list;
+  }
 }
 
 class State extends RData {

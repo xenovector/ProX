@@ -1,31 +1,35 @@
 // You can set your api network setting and custom error code here.
 import 'package:flutter/foundation.dart';
 
-const ConnectErr = 'You may experiencing connection issue';
 
 //General Error Code
-const ForceUpdate = 999; //end with
-const LabelUpdate = 998; // end with
-const ForceLogout = 996; // end with
-const SessionExpired = 61; // end with
-const ServerError = 500;
-const InternalError = 0;
-const HtmlError = 500500;
-const NoInternet = 12029;
 const RequestTimeout = 408;
 const Maintenance = 503;
+const ServerError = 500;
+const InternalError = 12004;
+
+// ----- ----- ----- -----
+
+const SessionExpired =  995; // end with
+const ForceVerifyPhone = 997; // end with
+const ForceLogout = 996; // end with
+const LabelUpdate = 998; // end with
+const ForceUpdate = 999; //end with
+
 
 // To get the endpoint for staging and production environment
 const deadPoint = '';
+
+const ConnectErr = 'You may experiencing network connection issue';
 
 // API config
 String get endPoint {
   if (kReleaseMode) {
     // Live endpoint
-    return 'https://domes-packaging.elitelab101.com/api';
+    return 'https://put-your-live-endpoint-here.com/api';
   } else {
     // Stag endpoint
-    return 'https://domes-packaging.elitelab101.com/api';
+    return 'https://put-your-stag-endpoint-here.com/api';
   }
 }
 const apiVersion = '/v1';

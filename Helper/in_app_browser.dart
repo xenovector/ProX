@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:sprintf/sprintf.dart';
@@ -16,11 +17,24 @@ class InAppBrowerBinding extends Bindings {
 
 class InAppBrowserController extends ProXController {
   InAppWebViewController? webViewController;
+  PullToRefreshController? pullToRefreshController;
 
   @override
   void onInit() {
     super.onInit();
     isLoading(true);
+    pullToRefreshController = PullToRefreshController(
+      options: PullToRefreshOptions(
+        color: Colors.blue,
+      ),
+      onRefresh: () async {
+        if (Platform.isAndroid) {
+          webViewController?.reload();
+        } else if (Platform.isIOS) {
+          webViewController?.loadUrl(urlRequest: URLRequest(url: await webViewController?.getUrl()));
+        }
+      },
+    );
   }
 
   dynamic onJavascriptHandler(List<dynamic> args) {
@@ -32,11 +46,11 @@ class InAppBrowserPage extends StatelessWidget {
   final String? appBarTitle;
   final String urlLink;
   final Map<String, String>? header;
-  final Map<String, String> defaultHeader = {}; //{'Authorization': 'Bearer ${accessToken.val}'};
+  final Map<String, String>? defaultHeader; //{'Authorization': 'Bearer ${accessToken.val}'};
 
-  InAppBrowserPage(this.urlLink, {this.appBarTitle, this.header});
+  InAppBrowserPage(this.urlLink, {this.appBarTitle, this.header, this.defaultHeader});
 
-  /*final InAppWebViewGroupOptions options = InAppWebViewGroupOptions(
+  final InAppWebViewGroupOptions options = InAppWebViewGroupOptions(
       crossPlatform: InAppWebViewOptions(
         useShouldOverrideUrlLoading: true,
         mediaPlaybackRequiresUserGesture: false,
@@ -46,7 +60,7 @@ class InAppBrowserPage extends StatelessWidget {
       ),
       ios: IOSInAppWebViewOptions(
         allowsInlineMediaPlayback: true,
-      ));*/
+      ));
 
   URLRequest getURLRequest() {
     if (urlLink.contains('html>')) {
@@ -66,7 +80,8 @@ class InAppBrowserPage extends StatelessWidget {
         builder: (ctrl) => Container(
           child: InAppWebView(
             initialUrlRequest: getURLRequest(),
-            //initialOptions: options,
+            initialOptions: options,
+            pullToRefreshController: ctrl.pullToRefreshController,
             onWebViewCreated: (InAppWebViewController webViewController) {
               ctrl.webViewController = webViewController;
               ctrl.webViewController!.addJavaScriptHandler(handlerName: 'Flutter', callback: ctrl.onJavascriptHandler);

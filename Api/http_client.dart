@@ -4,12 +4,13 @@ import 'dart:convert';
 import 'package:http/http.dart';
 import 'package:path/path.dart';
 import 'package:connectivity/connectivity.dart';
-import '../i18n/app_language.dart';
 import 'response.dart';
 import 'api_setting.dart';
+import '../i18n/app_language.dart';
 import '../Helper/device.dart';
 import '../Core/pro_x_storage.dart' as ProXStorage;
 import '../Core/extension.dart';
+import '../Core/pro_x.dart';
 
 typedef OnSuccess = void Function(String message);
 typedef OnFail = Future<bool> Function(int code, String message, {Function()? tryAgain});
@@ -45,6 +46,8 @@ class RequestTask {
   final bool forceFileArray;
   final Map<String, String>? extraHeader;
   final Map<String, File>? customFileField;
+  final bool ignoreHTMLerrorHandling;
+  final String? preAccessToken;
 
   const RequestTask(
       {required this.urlPath,
@@ -54,7 +57,9 @@ class RequestTask {
       required this.fileField,
       required this.forceFileArray,
       required this.extraHeader,
-      required this.customFileField});
+      required this.customFileField,
+      required this.ignoreHTMLerrorHandling,
+      required this.preAccessToken});
 
   factory RequestTask.set(String path,
       {Map<String, String>? body,
@@ -63,7 +68,9 @@ class RequestTask {
       String? fileField,
       bool forceFileArray = false,
       Map<String, String>? extraHeader,
-      Map<String, File>? customFileField}) {
+      Map<String, File>? customFileField,
+      bool ignoreHTMLerrorHandling = false,
+      String? preAccessToken}) {
     return RequestTask(
         urlPath: path,
         parameter: body,
@@ -72,7 +79,9 @@ class RequestTask {
         fileField: fileField,
         forceFileArray: forceFileArray,
         extraHeader: extraHeader,
-        customFileField: customFileField);
+        customFileField: customFileField,
+        ignoreHTMLerrorHandling: ignoreHTMLerrorHandling,
+        preAccessToken: preAccessToken);
   }
 }
 
@@ -88,6 +97,11 @@ RequestException onObjectException(Object e, OnFail onFail) {
   if (e is RequestException) {
     onFail(e.code, e.errorMessage);
     return e;
+  } else if (e is TypeError) {
+    String stack = e.stackTrace?.toString() ?? '';
+    stack = stack.split('#')[1].substring(1).trim();
+    onFail(InternalError, e.toString() + '\n\nThrowExpression\n$stack');
+    return RequestException(InternalError, e.toString());
   } else {
     onFail(InternalError, e.toString());
     return RequestException(InternalError, e.toString());
@@ -96,14 +110,14 @@ RequestException onObjectException(Object e, OnFail onFail) {
 
 // Request Body Engine
 Future<ResponseData<T>> requestFilter<T extends RData>(RequestTask request,
-    {HttpMethod httpMethod = HttpMethod.post,
+    {HttpMethod requestMethod = HttpMethod.post,
     bool requestRaw = false,
     bool getRawData = false,
     bool requestEndpointUrl = false}) async {
   bool noInternetion = !(await checkInternetConnection());
 
   if (noInternetion) {
-    throw RequestException(404, 'No Internet Connection, Please check your network and try again.');
+    throw RequestException(InternalError, 'No Internet Connection, Please check your network and try again.');
   }
 
   var szUrl = requestRaw
@@ -117,9 +131,9 @@ Future<ResponseData<T>> requestFilter<T extends RData>(RequestTask request,
       ? {}
       : request.headerType == HeaderType.authorized
           ? {
-              HttpHeaders.authorizationHeader: "Bearer ${ProXStorage.accessToken.val}",
+              HttpHeaders.authorizationHeader: "Bearer ${request.preAccessToken ?? ProXStorage.accessToken.val}",
               HttpHeaders.acceptHeader: acceptHeader,
-              HttpHeaders.contentTypeHeader: httpMethod == HttpMethod.multipart ? multipartHeader : contentHeader,
+              HttpHeaders.contentTypeHeader: requestMethod == HttpMethod.multipart ? multipartHeader : contentHeader,
               'App-Version': DevicePreferences.version,
               'Device': DevicePreferences.platform,
               'locale': AppLanguage.appLocale?.languageCode.getEmptyOrNull ?? 'en',
@@ -142,11 +156,11 @@ Future<ResponseData<T>> requestFilter<T extends RData>(RequestTask request,
   Response? response;
   print('----- Request Info');
   print('url: $szUrl');
-  print('header: $header');
+  printSuperLongText('header: $header');
   print('parameter: $body');
   print('----- End Info');
   print('Request Send --->');
-  switch (httpMethod) {
+  switch (requestMethod) {
     case HttpMethod.post:
       response =
           await post(Uri.parse(szUrl), body: body, headers: header).timeout(timeoutDuration).catchError((onError) {
@@ -225,13 +239,13 @@ Future<ResponseData<T>> requestFilter<T extends RData>(RequestTask request,
     if (response.statusCode != 500) {
       String byteData = String.fromCharCodes(response.bodyBytes);
       //print('byteData: $byteData');
-      if (byteData.contains('html>')) {
-        throw RequestException(HtmlError, byteData);
+      if (byteData.contains('html>') && !request.ignoreHTMLerrorHandling) {
+        throw RequestException(ServerError, byteData);
       }
 
-      var rawData = jsonDecode(byteData);
+      var rawData = request.ignoreHTMLerrorHandling ? byteData : jsonDecode(byteData);
       if (getRawData) {
-        return rawData;
+        return ResponseData<T>(code: response.statusCode, rawData: rawData);
       } else {
         ResponseData<T> res = ResponseData<T>.fromJson(rawData);
         print('res.status: $res');

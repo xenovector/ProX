@@ -45,7 +45,11 @@ class ResponseData<R extends RData> {
         mData = UserItem.fromJson(jsonData) as R;
         break;
       case Preload:
-        mData = Preload.fromJson(jsonData) as R;
+        if (jsonData is List) {
+          mDatas = Preload.listFromJson(jsonData) as List<R>;
+        } else {
+          mData = Preload.fromJson(jsonData) as R;
+        }
         break;
       default:
         break;

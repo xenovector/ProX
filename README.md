@@ -20,27 +20,32 @@ pod 'DexterSwift'
 ```dart
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'ProX/Core/export.dart';
+import 'ProX/export.dart';
+// Notification
+//import 'ProX/Controller/notification_controller.dart';
 // Location
 //import 'ProX/Controller/location_controller.dart';
-// Notification
-//import 'ProX/Controller/notification_controller.dart' as NC;
 
-void main() async {
+void main() {
   WidgetsFlutterBinding.ensureInitialized();
   SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(statusBarColor: Colors.transparent));
-  //NC.init();
   ProXStorage.init();
+  //NC.init();
   runApp(MyApp());
 }
 
 class MyApp extends StatelessWidget {
+  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     ErrorWidget.builder = ProX.customErrorWidget;
+    // Add default font if needed. <* e.g. ThemeData(fontFamily: 'Poppins') *>
+    final ThemeData theme = ThemeData(primarySwatch: ThemeColor.swatch);
     return GetMaterialApp(
       title: 'App Name',
-      theme: ThemeData(primarySwatch: ThemeColor.swatch, accentColor: ThemeColor.main),
+      theme: theme.copyWith(
+        colorScheme: theme.colorScheme.copyWith(secondary: ThemeColor.main),
+      ),
       initialBinding: LoadingBinding(),
       home: LoadingPage(),
     );
@@ -70,75 +75,89 @@ class LoadingController extends GetxController {
         //showInAppBrowser(msg, appBarTitle: L.G_ERROR.tr);
         return false;
       } else if (code == RequestTimeout) {
-        if (tryAgain == null) {
-          await showConfirmation('Error: $code, You may experience slow internet issue, please try again later.');
-        } else {
-          // bool res = await showConfirmCancel('Error: $code', 'You may experience slow internet issue, try again?');
-          // if (res) tryAgain();
-        }
+        await showNativeDialog('Error: $code, You may experience slow internet issue, please try again later.');
+        if (tryAgain != null) tryAgain();
         return false;
-      } else if (code.endsWith(SessionExpired)) {
-        await showConfirmation('Your seesion has expired, please login again.');
-        //Get.offAll(LoginPage(), binding: LoginBinding());
+      } else if (code.endsWith(SessionExpired) || code.endsWith(ForceLogout)) {
+        accessToken.val = '';
+        await showNativeDialog('Your seesion has expired, please login again.');
+        Get.back();
         return false;
       } else if (code.endsWith(ForceUpdate)) {
         openForceUpdateDialog();
         return false;
       } else if (code == Maintenance) {
-        //
+        showNativeDialog('Server is under maintenance, please try again later.', message: msg);
+        return false;
+      } else if (code == InternalError) {
+        showNativeDialog('Error: $code', message: msg);
         return false;
       }
       return true;
     });
     this.checkCredential();
+  }
+
+  @override
+  void onReady() async {
+    super.onReady();
+    await Future.delayed(Duration(milliseconds: 500));
     this.fadeVisible = true;
     update();
   }
 
   void checkCredential() async {
     await DevicePreferences.init();
-    RequestException error = await AppLanguage.init();
+    /*RequestException? error = await AppLanguage.init();
     if (error != null) {
       print('AppLanguage.init Error: ${error.errorMessage}');
-      await showConfirmationWithTitle('Error: ${error.code}', error.errorMessage, confirm: checkCredential);
+      await showNativeDialog('Error: ${error.code}', message: error.errorMessage, onDone: checkCredential);
       return;
-    }
+    }*/
     // ResponseData<PreloadData> res = await getPreload((code, msg) async {
     //   return true;
     // });
     // preload = res.data;
+
+    // await getAppSetting(onFailed);
+    // await getBanks(onFailed);
+    // await getState(onFailed);
+    // await getPhonePrefix(onFailed);
+
     moveToEntryPage();
   }
 
   void moveToEntryPage() async {
-    if (!didInit) didInit = true;
+    if (!didInit)
+      didInit = true;
     else {
-      bool didSetLocale = AppLanguage.didSetLocale.val;
-      print('didSetLocale: $didSetLocale');
-      if (!didSetLocale && AppLanguage.supportLocale.length > 1) {
-        //Get.offAll(LanguagePage(), binding: LanguageBinding());
-      } else {
-        //Get.offAll(LoginPage(), binding: LoginBinding());
-      }
+      bool isHMS = await ProX.isHMS();
+      print('isHMS: $isHMS');
+      //await getUpdateDevice((code, message, {tryAgain}) async => true);
+      //await Future.delayed(Duration(milliseconds: 800));
+      //Get.offAll(WalkThroughPage(), binding: WalkThroughBinding());
     }
   }
 }
 
 class LoadingPage extends StatelessWidget {
   Widget splashScreen() {
-    return Container(
-      color: ThemeColor.background,
-      width: double.infinity,
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          // --- Decline all your widget here.
-          Expanded(child: Center(), flex: 9),
-          Image.asset('assets/app_logo.png', width: 220),
-          Expanded(child: Center(), flex: 10),
-          // --- .
-        ],
-      ),
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        // --- Decline all your widget here.
+        Expanded(child: Center(), flex: 9),
+        //FlutterLogo(size: 220),
+        Image.asset('assets/app_logo.png', width: 220),
+        /*ElevatedButton(
+          onPressed: () {
+            //
+          },
+          child: child: Container(padding: EdgeInsets.symmetric(vertical: 12, horizontal: 6), child: Text('Test')),
+        ),*/
+        Expanded(child: Center(), flex: 10),
+        // --- .
+      ],
     );
   }
 
@@ -147,33 +166,32 @@ class LoadingPage extends StatelessWidget {
     SizeConfig().init(context);
     return Scaffold(
         body: GetBuilder<LoadingController>(
-            builder: (ctrl) => Stack(
-                  children: [
-                    // Main Loaidng Screen with fade effect.
-                    Positioned.fill(
-                      child: AnimatedOpacity(
-                        opacity: ctrl.fadeVisible ? 1.0 : 0.0,
-                        duration: Duration(milliseconds: 1200),
-                        onEnd: () => ctrl.moveToEntryPage(),
-                        child: Container(
-                            color: Colors.white,
-                            height: double.infinity,
-                            width: double.infinity,
-                            child: splashScreen()),
+            builder: (ctrl) => Container(
+                  color: Colors.black,
+                  child: Stack(
+                    children: [
+                      // Main Loaidng Screen with fade effect.
+                     Positioned.fill(
+                        child: AnimatedOpacity(
+                          opacity: ctrl.fadeVisible ? 1.0 : 0.0,
+                          duration: Duration(milliseconds: 1200),
+                          onEnd: () => ctrl.moveToEntryPage(),
+                          child: splashScreen(),
+                        ),
                       ),
-                    ),
-                    // Loading Widget for initialize purpose.
-                    Positioned.fill(
-                        child: ctrl.showLoading
-                            ? Container(
-                                width: double.infinity,
-                                height: double.infinity,
-                                color: Colors.black26,
-                                child: Center(
-                                  child: CircularProgressIndicator(),
-                                ))
-                            : Center()),
-                  ],
+                      // Loading Widget for initialize purpose.
+                      Positioned.fill(
+                          child: ctrl.showLoading
+                              ? Container(
+                                  width: double.infinity,
+                                  height: double.infinity,
+                                  color: Colors.black26,
+                                  child: Center(
+                                    child: CircularProgressIndicator(),
+                                  ))
+                              : Center()),
+                    ],
+                  ),
                 )));
   }
 }
@@ -181,7 +199,7 @@ class LoadingPage extends StatelessWidget {
 ```
 <br />
 
-### Usage Guide
+### Useful Utilities
 ```dart
 // Override the scary red Error Widget
 ErrorWidget.builder = ProX.customErrorWidget;
@@ -211,11 +229,21 @@ bool isGMS = await ProX.isGMS():
 ### Error Hanlding
 ```dart
 @override
-Future<bool> onFailed(int code, String msg, {Function() tryAgain}) async {
+Future<bool> onFailed(int code, String msg, {Function()? tryAgain}) async {
   isLoading(false);
-  bool handlePrivately = await super.onFailed(code, msg, tryAgain: yourTryAgainFunction);
-  if (handlePrivately) await showConfirmationWithTitle('Error: $code', msg);
+  bool handlePrivately = await super.onFailed(code, msg, tryAgain: tryAgain);
+  if (handlePrivately) await showNativeDialog('Error: $code', message: msg);
   return handlePrivately;
+}
+```
+<br />
+
+### WillPop Hanlding
+```dart
+@override
+Future<bool> onHandleWillPop() {
+  // Your handling goes here...
+  return super.onHandleWillPop();
 }
 ```
 <br />
@@ -240,16 +268,18 @@ This project template using not only getx but many other plugin as well, below w
   path_provider:
   url_launcher:
   app_settings:
-  # huawei_hmsavailability:
-  flutter_statusbarcolor_ns:
+  huawei_hmsavailability:
   flutter_inappwebview:
   flutter_keyboard_visibility:
   extended_image:
   audioplayers:
-  auto_size_text: ^3.0.0-nullsafety.0
-  vibration: ^1.7.4-nullsafety.0
   version:
-  permission_handler: # visit the site to setup for each platform.
+  permission_handler:
+  flutter_dialogs:
+  share:
+  vibration: ^1.7.4-nullsafety.0
+  auto_size_text: ^3.0.0-nullsafety.0
+  flutter_statusbarcolor_ns: ^0.3.0-nullsafety
 
   # --- listing use ---
   pull_to_refresh:
@@ -259,11 +289,11 @@ This project template using not only getx but many other plugin as well, below w
   # --- camera use ---
   camera:
   image_picker:
-  pinch_zoom: ^0.1.0
-  native_device_orientation: ^1.0.0
-  align_positioned: ^2.0.0
-  image: ^3.0.2
-  image_editor: ^1.0.0
+  pinch_zoom:
+  native_device_orientation:
+  align_positioned:
+  image:
+  image_editor:
   # --- ------ --- ---
 
   # --- location use ---
@@ -272,28 +302,34 @@ This project template using not only getx but many other plugin as well, below w
   geocoding:
   google_maps_flutter: ^2.0.3
   huawei_map:
-    path: lib/ProX/Download/hms/huawei_map
   # --- -------- --- ---
 
   # --- notification use ---
-  # onesignal_flutter: ^2.6.3
-  firebase_core: ^1.2.1
-  firebase_messaging: ^10.0.1
-  huawei_push: ^5.1.1+301
+  # onesignal_flutter:
+  firebase_core:
+  firebase_messaging:
+  huawei_push:
   flutter_fgbg:
   # --- ------------ --- ---
 
   # list project base plugin here:
 
-  # flutter_html:
-  # open_file:
-  # flutter_swiper: ^1.1.6
-  # smooth_page_indicator: ^0.2.1
-  # qr_flutter: ^4.0.0
-  # menu_button: ^1.4.2+1
-  # pin_code_fields: ^7.0.0
-  # flutter_xlider:
+  # modal_bottom_sheet:
+  # smooth_page_indicator:
+  # pin_code_fields:
   # qr_code_scanner:
+  # qr_flutter:
+  # carousel_slider:
+  # cool_dropdown:
+  # gallery_saver:
+  # google_place:
+  # menu_button:
+  # open_file:
+  # flutter_switch:
+  # flutter_swiper:
+  # flutter_xlider:
+  # flutter_html:
+  # fl_chart:
 ```
 ```yaml
 assets:
@@ -443,6 +479,7 @@ android {
    defaultConfig {
      minSdkVersion 21
    }
+
    signingConfigs {
         config {
             keyAlias keystoreProperties['keyAlias']
@@ -451,6 +488,7 @@ android {
             storePassword keystoreProperties['storePassword']
         }
     }
+
     buildTypes {
         debug {
             signingConfig signingConfigs.config
@@ -802,7 +840,7 @@ Current Flutter & Dart compatibility breakdown:
 
 | Flutter Version | Dart Version |
 | --------------- | ------------ |
-| 2.x	            | 2.12.x       |
+| ^2.5.x	        | ^2.14.x      |
 
 <br />
 

@@ -10,6 +10,11 @@ class ThemeColor {
   static const mainLight = Color(0xFF2C92CE);
   static const mainDark = Color(0xFF2C92CE);
 
+  /// Secondary
+  static const subMain = darkMode ? subMainDark : subMainLight;
+  static const subMainLight = Color(0xFF2C92CE);
+  static const subMainDark = Color(0xFF2C92CE);
+
   /// Background
   static const background = darkMode ? backgroundDark : backgroundLight;
   static const backgroundLight = Color(0xFFF5F6FA);
@@ -31,7 +36,6 @@ class ThemeColor {
   static const dialog_error_color = Color(0xFFFC6666);
 
   // Custom
-  static const secondary = Color(0xFFFFAF46);
   static const light_black = Color(0xFFA8A8A8);
   static const text_color = Color(0xFF000000);
   static const text_color_contrast = Color(0xFFFFFFFF);

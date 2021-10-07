@@ -3,31 +3,12 @@ import 'package:permission_handler/permission_handler.dart' as Permission;
 import 'package:geocoding/geocoding.dart' as geo;
 import 'package:huawei_location/location/location.dart' as hms;
 import 'package:huawei_location/location/fused_location_provider_client.dart';
-//import 'package:google_maps_flutter/google_maps_flutter.dart';
-// import 'package:huawei_location/activity/activity_conversion_data.dart';
-// import 'package:huawei_location/activity/activity_conversion_info.dart';
-// import 'package:huawei_location/activity/activity_conversion_response.dart';
-// import 'package:huawei_location/activity/activity_identification_data.dart';
-// import 'package:huawei_location/activity/activity_identification_response.dart';
-// import 'package:huawei_location/activity/activity_identification_service.dart';
-// import 'package:huawei_location/geofence/geofence.dart';
-// import 'package:huawei_location/geofence/geofence_data.dart';
-// import 'package:huawei_location/geofence/geofence_request.dart';
-// import 'package:huawei_location/geofence/geofence_service.dart';
-// import 'package:huawei_location/location/hwlocation.dart';
-// import 'package:huawei_location/location/location_availability.dart';
-// import 'package:huawei_location/location/location_callback.dart';
-// import 'package:huawei_location/location/location_request.dart';
-// import 'package:huawei_location/location/location_result.dart';
-// import 'package:huawei_location/location/location_settings_request.dart';
-// import 'package:huawei_location/location/location_settings_states.dart';
-// import 'package:huawei_location/location/navigation_request.dart';
-// import 'package:huawei_location/location/navigation_result.dart';
 import 'package:huawei_location/permission/permission_handler.dart';
 import '../export.dart';
 
 class ProXLocation {
   static ProXLocation shared = ProXLocation();
+  static bool shouldEnableBackgroundService = false;
   bool serviceEnabled = false;
   bool permissionGranted = false;
   Future<ProXLocationData?> get locationData async => permissionGranted ? await _getLocationData() : null;
@@ -42,7 +23,7 @@ class ProXLocation {
         serviceEnabled = true;
         permissionGranted = true;
         hms.Location location = await FusedLocationProviderClient().getLastLocation();
-        print('HMS.location =>\nlongitude: ${location.longitude}\nlatitude: ${location.latitude}');
+        print('HMS.location =>\nlongitude: ${location.longitude}, latitude: ${location.latitude}');
       } catch (e) {
         print(e.toString);
         return null;
@@ -70,7 +51,7 @@ class ProXLocation {
       }
       permissionGranted = true;
       LocationData _locationData = await location.getLocation();
-      print('GMS.location =>\nlongitude: ${_locationData.longitude}\nlatitude: ${_locationData.latitude}');
+      print('GMS.location =>\nlongitude: ${_locationData.longitude}, latitude: ${_locationData.latitude}');
     }
     return locationData;
   }
@@ -84,22 +65,25 @@ class ProXLocation {
     double? time;
     if (shouldUseHMS) {
       hms.Location location = await FusedLocationProviderClient().getLastLocation();
-      longitude = double.parse(location.longitude.toStringAsFixed(12));
-      latitude = double.parse(location.latitude.toStringAsFixed(12));
-      altitude = double.parse(location.altitude.toString());
+      longitude = double.parse((location.longitude ?? 0).toStringAsFixed(12));
+      latitude = double.parse((location.latitude ?? 0).toStringAsFixed(12));
+      altitude = double.parse((location.altitude ?? 0).toString());
       speed = location.speed;
-      time = location.time.toDouble();
+      time = location.time?.toDouble();
     } else {
       Location _l = Location.instance;
-      await _l.enableBackgroundMode(enable: true);
+      if (shouldEnableBackgroundService) {
+        bool backgroundEnable = await _l.isBackgroundModeEnabled();
+        if (!backgroundEnable) await _l.enableBackgroundMode();
+      }
       LocationData location = await _l.getLocation();
       longitude = double.parse((location.longitude ?? 0).toStringAsFixed(12));
       latitude = double.parse((location.latitude ?? 0).toStringAsFixed(12));
-      altitude = double.parse(location.altitude.toString());
+      altitude = double.parse((location.altitude ?? 0).toString());
       speed = location.speed;
       time = location.time;
     }
-    //if (latitude == 0 || longitude == 0) return null;
+    if (latitude == 0 || longitude == 0) return null;
     print('latitude: $latitude, longitude $longitude');
     List<geo.Placemark> placemarks = await geo.placemarkFromCoordinates(latitude, longitude);
     geo.Placemark? placemark = placemarks.length > 0 ? placemarks[0] : null;

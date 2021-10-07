@@ -1,4 +1,6 @@
+import 'dart:io';
 import 'dart:ui';
+import 'package:path/path.dart';
 
 extension MapDynamicValueToString on Map<String, dynamic> {
   Map<String, String> toMapString() {
@@ -11,6 +13,26 @@ extension MapDynamicValueToString on Map<String, dynamic> {
       }
     });
     return _szMap;
+  }
+}
+
+extension DynamicListToStringList on List<dynamic> {
+  List<String> toStringList() {
+    List<String> _list = [];
+    for (var item in this) {
+      if (item is String) {
+        _list.add(item);
+      } else {
+        _list.add(item.toString());
+      }
+    }
+    return _list;
+  }
+}
+
+extension ProXFile on File {
+  String get name {
+    return basename(this.path);
   }
 }
 
@@ -42,6 +64,10 @@ extension ProXInt on int {
 }
 
 extension ProXString on String {
+  String toFirstUpperCaseOnly() {
+    return "${this[0].toUpperCase()}${this.substring(1).toLowerCase()}";
+  }
+
   String lowerCaseAMPM() {
     return this.replaceAll('PM', 'pm').replaceAll('AM', 'am');
   }
@@ -81,6 +107,10 @@ extension ProXString on String {
 }
 
 extension ProXNullableString on String? {
+  String toFirstUpperCaseOnly() {
+    return "${this?[0].toUpperCase()}${this?.substring(1).toLowerCase()}";
+  }
+
   String? lowerCaseAMPM() {
     if (this == null || this == '') return this;
     return this!.replaceAll('PM', 'pm').replaceAll('AM', 'am');
