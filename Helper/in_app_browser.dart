@@ -1,5 +1,7 @@
 import 'dart:async';
 import 'dart:io';
+import 'package:flutter/foundation.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:sprintf/sprintf.dart';
@@ -63,7 +65,7 @@ class InAppBrowserPage extends StatelessWidget {
       ));
 
   URLRequest getURLRequest() {
-    if (urlLink.contains('html>')) {
+    if (urlLink.contains('html>') || urlLink.startsWith('<')) {
       return URLRequest(url: Uri.dataFromString(urlLink, mimeType: 'text/html'));
     } else {
       return URLRequest(url: Uri.parse(urlLink), headers: header ?? defaultHeader);
@@ -79,6 +81,10 @@ class InAppBrowserPage extends StatelessWidget {
       child: GetBuilder<InAppBrowserController>(
         builder: (ctrl) => Container(
           child: InAppWebView(
+            gestureRecognizers: [
+              Factory(() => VerticalDragGestureRecognizer()),
+              Factory(() => HorizontalDragGestureRecognizer()),
+            ].toSet(),
             initialUrlRequest: getURLRequest(),
             initialOptions: options,
             pullToRefreshController: ctrl.pullToRefreshController,
@@ -88,16 +94,17 @@ class InAppBrowserPage extends StatelessWidget {
             },
             onLoadStop: (InAppWebViewController controller, Uri? url) {
               //print('Page finished loading: $url');
+              ctrl.pullToRefreshController?.endRefreshing();
               Future.delayed(Duration(milliseconds: 100)).then((_) {
                 ctrl.isLoading(false);
               });
             },
             onLoadError: (controller, url, code, message) {
-              showToast(sprintf(L.G_ERROR_CODE_COLON_MSG.tr, [code, message]), context: context);
+              showToast(sprintf(L.GENERAL_ERROR_CODE_COLON_MSG.tr, [code, message]), context: context);
               ctrl.isLoading(false);
             },
             onLoadHttpError: (controller, url, statusCode, description) {
-              showToast(sprintf(L.G_ERROR_CODE_COLON_MSG.tr, [statusCode, description]), context: context);
+              showToast(sprintf(L.GENERAL_ERROR_CODE_COLON_MSG.tr, [statusCode, description]), context: context);
               ctrl.isLoading(false);
             },
           ),

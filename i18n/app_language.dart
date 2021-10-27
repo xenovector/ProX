@@ -48,9 +48,9 @@ class AppLanguage {
   // key from server side.
   static const String Label_Support_JsonKey = 'supported_locale';
   static const String Label_Language_Name = 'name';
-  static const String Label_Locale_Image = 'imgUrl';
+  static const String Label_Locale_Image = 'image_url';
   static const String Label_Version_JsonKey = 'label_version';
-  static const String Label_MapData_JsonKey = 'label';
+  static const String Label_MapData_JsonKey = 'labels';
 
   // key for preferences.
   static const String KEY_LANGUAGE_CODE = 'language_code';

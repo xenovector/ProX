@@ -1,7 +1,6 @@
 // You can set your api network setting and custom error code here.
 import 'package:flutter/foundation.dart';
 
-
 //General Error Code
 const RequestTimeout = 408;
 const Maintenance = 503;

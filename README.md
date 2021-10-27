@@ -226,7 +226,7 @@ bool isGMS = await ProX.isGMS():
 ```
 <br />
 
-### Error Hanlding
+### Error Handling
 ```dart
 @override
 Future<bool> onFailed(int code, String msg, {Function()? tryAgain}) async {
@@ -238,7 +238,7 @@ Future<bool> onFailed(int code, String msg, {Function()? tryAgain}) async {
 ```
 <br />
 
-### WillPop Hanlding
+### WillPop Handling
 ```dart
 @override
 Future<bool> onHandleWillPop() {
@@ -771,6 +771,11 @@ Also, add `android:name=".Application"` in AndroidManifest.xml.
 		<key>NSAllowsArbitraryLoads</key>
 		<true/>
 	</dict>
+  <key>LSApplicationQueriesSchemes</key>
+  <array>
+    <string>https</string>
+    <string>http</string>
+  </array>
   <key>UIUserInterfaceStyle</key>
 	<string>Light</string>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
@@ -796,6 +801,24 @@ There is a lot of permission needed to be add into your project based on use cas
   <uses-permission android:name="android.permission.ACCESS_COARES_LOCATION" />
   <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
   <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" />
+
+  <queries>
+    <!-- If your app opens https URLs -->
+    <intent>
+      <action android:name="android.intent.action.VIEW" />
+      <data android:scheme="https" />
+    </intent>
+    <!-- If your app makes calls -->
+    <intent>
+      <action android:name="android.intent.action.DIAL" />
+      <data android:scheme="tel" />
+    </intent>
+    <!-- If your app emails -->
+    <intent>
+      <action android:name="android.intent.action.SEND" />
+      <data android:mimeType="*/*" />
+    </intent>
+  </queries>
 ````
 </details>
 
@@ -847,7 +870,7 @@ Current Flutter & Dart compatibility breakdown:
 Make sure you uncomment `platform :ios` at Podfile and change to version to the noted version.
 | Android | iOS |
 | ---------- | ---- |
-| Min Sdk	21 | 10.0 |
+| Min Sdk	21 | 10.0 and above |
 
 <br />
 

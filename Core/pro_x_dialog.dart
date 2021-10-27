@@ -2,11 +2,11 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import '../export.dart';
 
-Future<String> showProXDialog(String title, List<String> szList, {String? btnLabel}) async {
+Future<String> showProXDialog(String title, List<String> szList, {String? btnLabel, int? selectedIndex}) async {
   ProXDialogController ctrl = Get.put(ProXDialogController());
   ctrl.itemList = szList;
   ctrl.selectedIndex = null;
-  return await Get.dialog(ProXDialogPage(ctrl, title, btnLabel ?? L.G_OK.tr));
+  return await Get.dialog(ProXDialogPage(ctrl, title, btnLabel ?? L.GENERAL_OK.tr));
 }
 
 class ProXDialogController extends GetxController {

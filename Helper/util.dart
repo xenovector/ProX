@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 import 'date_time.dart';
+import 'dart:ui' as ui;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
@@ -231,17 +232,6 @@ Future<dynamic> showInAppBrowser(String url, {String? appBarTitle, Map<String, S
   Get.to(InAppBrowserPage(url, appBarTitle: appBarTitle, header: header), binding: InAppBrowerBinding());
 }
 
-Future launchURL(String? url, {bool pop = false}) async {
-  if (url == null || url == '') {
-    return;
-  } else if (await canLaunch(url)) {
-    if (pop) Get.back();
-    await launch(url);
-  } else {
-    throw 'Could not launch $url';
-  }
-}
-
 void dismissKeyboard(BuildContext context) {
   FocusScope.of(context).requestFocus(new FocusNode());
 }
@@ -304,23 +294,35 @@ void openAppStore({String? id}) async {
   }
 }
 
-void makePhoneCall(String? phoneNumber) {
-  if (phoneNumber != null) {
-    phoneNumber = phoneNumber.replaceAll(' ', '');
-    if (Platform.isAndroid) {
-      launch('tel:$phoneNumber}');
-    } else {
-      launch('tel://$phoneNumber');
-    }
+Future openURL(String? url, {bool pop = false}) async {
+  if (url == null || url == '') {
+    return;
+  } else if (await canLaunch(url)) {
+    if (pop) Get.back();
+    await launch(url);
+  } else {
+    throw 'Could not launch $url';
   }
 }
 
-void call({String number = ''}) {
+void openEmail({required String email, required String title, String? body}) async {
+  var link = 'mailto:$email?subject=$title';
+  if (body != null) link += '&body=$body';
+  link.replaceAll(' ', '%20');
+  await openURL(link);
+}
+
+void openWhatsapp({required String number, required String text}) async {
+  await openURL('https://wa.me/$number?text=$text');
+}
+
+void openCall({required String phone}) async {
+  //phone = phone.replaceAll(' ', '');
   if (Platform.isAndroid) {
     // ignore: unnecessary_brace_in_string_interps
-    launch('tel:${number}');
+    launch('tel:${phone}');
   } else {
-    launch('tel://${number.replaceAll(' ', '').getEmptyOrNull ?? number}');
+    launch('tel://${phone.replaceAll(' ', '').getEmptyOrNull ?? phone}');
   }
 }
 
@@ -348,7 +350,25 @@ bool isValidEmail(String email) {
       .hasMatch(email);
 }
 
+class CirclePainter extends CustomPainter {
+  ui.Image? imageToDraw;
+  final Color _color;
 
+  CirclePainter(this._color);
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    var paint1 = Paint()
+      ..color = _color
+      ..style = PaintingStyle.fill;
+
+    canvas.drawCircle(Offset(size.width / 2, 120), 60, paint1);
+    // canvas.drawImage(imageToDraw!, Offset(size.width / 2, 0), paint1);
+  }
+
+  @override
+  bool shouldRepaint(CustomPainter oldDelegate) => true;
+}
 
 
 

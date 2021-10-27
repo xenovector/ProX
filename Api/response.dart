@@ -23,43 +23,47 @@ class ResponseData<R extends RData> {
     var jsonData = json['data'];
     if (jsonData is List && jsonData.length == 0) jsonData = null;
 
+    bool _status = json.containsKey('status')
+        ? json['status']
+        : json.containsKey('success')
+            ? json['success']
+            : true;
+
     R? mData;
     List<R>? mDatas;
-    switch (R) {
-      case AccessToken:
-        mData = AccessToken.fromJson(jsonData) as R;
-        break;
-      case BoolResponse:
-        mData = BoolResponse.fromJson(jsonData) as R;
-        break;
-      case LabelSupport:
-        mData = LabelSupport.fromJson(jsonData) as R;
-        break;
-      case LabelInfo:
-        mData = LabelInfo.fromJson('', jsonData) as R;
-        break;
-      case UserJson:
-        mData = UserJson.fromJson(jsonData) as R;
-        break;
-      case UserItem:
-        mData = UserItem.fromJson(jsonData) as R;
-        break;
-      case Preload:
-        if (jsonData is List) {
-          mDatas = Preload.listFromJson(jsonData) as List<R>;
-        } else {
-          mData = Preload.fromJson(jsonData) as R;
-        }
-        break;
-      default:
-        break;
+    if (_status) {
+      switch (R) {
+        case AccessToken:
+          mData = AccessToken.fromJson(jsonData) as R;
+          break;
+        case BoolResponse:
+          mData = BoolResponse.fromJson(jsonData) as R;
+          break;
+        case LabelSupport:
+          mData = LabelSupport.fromJson(jsonData) as R;
+          break;
+        case LabelInfo:
+          mData = LabelInfo.fromJson('', jsonData) as R;
+          break;
+        case UserJson:
+          mData = UserJson.fromJson(jsonData) as R;
+          break;
+        case UserItem:
+          mData = UserItem.fromJson(jsonData) as R;
+          break;
+        case Preload:
+          if (jsonData is List) {
+            mDatas = Preload.listFromJson(jsonData) as List<R>;
+          } else {
+            mData = Preload.fromJson(jsonData) as R;
+          }
+          break;
+        default:
+          break;
+      }
     }
     return ResponseData<R>(
-      status: json.containsKey('status')
-          ? json['status']
-          : json.containsKey('success')
-              ? json['success']
-              : true,
+      status: _status,
       code: json.containsKey('code') ? json['code'] : 0,
       message: json.containsKey('message') ? json['message'] : '',
       data: mData,

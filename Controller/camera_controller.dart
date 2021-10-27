@@ -12,6 +12,7 @@ import 'package:image/image.dart' as img;
 import 'package:image_editor/image_editor.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:image_picker/image_picker.dart' as imgPicker;
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import '../export.dart';
 
@@ -24,7 +25,7 @@ Future<File?> showCameraController({CameraLensDirection? lensDirection, OnRotate
 }
 
 /// Convenience Image Picker.
-Future<File?> showImagePicker(BuildContext context, {bool customCamera = true}) async {
+Future<File?> showImagePicker(BuildContext context, {bool customCamera = true, bool includedFilePicker = false}) async {
   int? index;
   if (Platform.isIOS) {
     index = await showCupertinoModalPopup(
@@ -44,6 +45,12 @@ Future<File?> showImagePicker(BuildContext context, {bool customCamera = true}) 
                     onPressed: () {
                       Get.back(result: 2);
                     }),
+                if (includedFilePicker)
+                  CupertinoActionSheetAction(
+                      child: Text('File Picker'),
+                      onPressed: () {
+                        Get.back(result: 3);
+                      }),
               ],
               cancelButton: CupertinoActionSheetAction(child: Text('Cancel'), onPressed: Get.back));
         });
@@ -71,6 +78,13 @@ Future<File?> showImagePicker(BuildContext context, {bool customCamera = true}) 
                     onTap: () {
                       Get.back(result: 2);
                     }),
+                if (includedFilePicker)
+                  ListTile(
+                      leading: Icon(Icons.insert_drive_file),
+                      title: Text('File Picker'),
+                      onTap: () {
+                        Get.back(result: 3);
+                      }),
                 line(horizontal: 10),
                 ListTile(
                   leading: Icon(Icons.cancel),
@@ -95,6 +109,13 @@ Future<File?> showImagePicker(BuildContext context, {bool customCamera = true}) 
     case 2:
       XFile? xFile = await ImagePicker().pickImage(source: imgPicker.ImageSource.gallery);
       pickedFile = (xFile == null) ? null : File(xFile.path);
+      break;
+    case 3:
+      FilePickerResult? xFile = await FilePicker.platform.pickFiles(
+        type: FileType.custom,
+        allowedExtensions: ['pdf', 'doc'],
+      );
+      if (xFile != null) pickedFile = File(xFile.files.single.path ?? '');
       break;
     default:
       break;

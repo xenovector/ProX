@@ -1,5 +1,7 @@
 import 'dart:io';
+import 'dart:math';
 import 'dart:ui';
+import 'package:intl/intl.dart';
 import 'package:path/path.dart';
 
 extension MapDynamicValueToString on Map<String, dynamic> {
@@ -60,6 +62,21 @@ extension ProXInt on int {
 
   bool endsWith(int value) {
     return this.toString().endsWith('$value');
+  }
+}
+
+extension ProXDouble on double {
+  String roundOff(int digit) {
+    int rounded = this.round();
+    int totalDigits = rounded.toString().length;
+    num dd = pow(10, totalDigits - 1);
+    String sz = (rounded / dd).toStringAsFixed(digit - 1);
+    double dAnswer = (double.tryParse(sz) ?? 0) * dd;
+    return dAnswer.toStringAsFixed(0);
+  }
+
+  String get readableFormat {
+    return NumberFormat.compact().format(this);
   }
 }
 
