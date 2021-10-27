@@ -1,0 +1,38 @@
+{
+    "Prox_Snippet": {
+        "prefix": "prox",
+        "scope": "dart",
+        "body": [
+            "import 'package:$WORKSPACE_NAME/ProX/export.dart';",
+            "",
+            "class $1Binding extends Bindings {",
+            "\t@override",
+            "\tvoid dependencies() {",
+            "\t\tGet.put($1Controller());",
+            "\t}",
+            "}",
+            "",
+            "class $1Controller extends ProXController {",
+            "\t@override",
+            "\tvoid onInit() {",
+            "\t\tsuper.onInit();",
+            "\t\t//",
+            "\t}",
+            "}",
+            "",
+            "class $1Page extends StatelessWidget {",
+            "\t@override",
+            "\tWidget build(BuildContext context) {",
+            "\t\treturn ProXWidget<$1Controller>(",
+            "\t\t\tchild: GetBuilder<$1Controller>(",
+            "\t\t\t\tbuilder: (ctrl) => Container(",
+            "\t\t\t\t\tchild: $2",
+            "\t\t\t\t)",
+            "\t\t\t)",
+            "\t\t);",
+            "\t}",
+            "}"
+        ],
+        "description": "ProX Page Snippet"
+    }
+}
