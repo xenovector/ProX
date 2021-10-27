@@ -856,7 +856,7 @@ Add the following to your `info.plist` based on your own use case:
 Remember to include flutter `.gitignore` at your project level, you can pull out one from ProX project level to your project level if you doesn't have one.
 
 ## Conveniences
-To improve your workkking speed, copy `/ProX/.vscode` and place it under your project directory.
+To increase your productivity, copy `/ProX/.vscode` and place it under your project directory.
 
 <br />
 
