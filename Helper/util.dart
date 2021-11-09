@@ -10,7 +10,7 @@ import 'package:audioplayers/audioplayers.dart';
 import 'package:vibration/vibration.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:prox/ProX/Controller/notification_controller.dart';
+import '../Controller/notification_controller.dart';
 import '../export.dart';
 
 void showFlash(String title, String message, {NotificationData? data}) {

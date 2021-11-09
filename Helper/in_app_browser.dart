@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
@@ -66,7 +67,7 @@ class InAppBrowserPage extends StatelessWidget {
 
   URLRequest getURLRequest() {
     if (urlLink.contains('html>') || urlLink.startsWith('<')) {
-      return URLRequest(url: Uri.dataFromString(urlLink, mimeType: 'text/html'));
+      return URLRequest(url: Uri.dataFromString(urlLink, mimeType: 'text/html', encoding: Encoding.getByName('utf-8')));
     } else {
       return URLRequest(url: Uri.parse(urlLink), headers: header ?? defaultHeader);
     }

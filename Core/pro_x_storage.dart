@@ -2,7 +2,7 @@ import 'package:get_storage/get_storage.dart';
 
 final accessToken = ReadWriteValue(ProXKey.ACCESS_TOKEN, '', ProXStorage.box);
 final userID = ReadWriteValue(ProXKey.USER_ID, '', ProXStorage.box);
-final isFirstTime = ReadWriteValue(ProXKey.IS_FIRST_TIME, '', ProXStorage.box);
+final isFirstTime = ReadWriteValue(ProXKey.IS_FIRST_TIME, true, ProXStorage.box);
 final isNotificationEnable = ReadWriteValue(ProXKey.IS_NOTIFICATION_ENABLED, true, ProXStorage.box);
 final dbVersion = ReadWriteValue(ProXKey.DB_VERSION, 0, ProXStorage.box);
 

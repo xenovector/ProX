@@ -242,6 +242,7 @@ class CameraProXController extends ProXController with SingleGetTickerProviderMi
   @override
   void onClose() {
     super.onClose();
+    controller?.dispose();
   }
 
   @override
@@ -518,7 +519,7 @@ class CameraProXPage extends StatelessWidget {
                   child: ctrl.imageFile == null
                       ? Center(child: cameraPreviewWidget(ctrl))
                       : PinchZoom(
-                          image: Image.file(ctrl.imageFile!, fit: BoxFit.contain),
+                          child: Image.file(ctrl.imageFile!, fit: BoxFit.contain),
                           resetDuration: Duration(milliseconds: 100),
                           maxScale: 2.5,
                         )),

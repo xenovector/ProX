@@ -20,24 +20,34 @@ import '../Core/pro_x_storage.dart';
   Step 1: Setup API
   ╔═══════════════════════════════════════════════════════════════════╗
   ║ Customise your API <endpoint> and <parameter/body> under the      ║
-  ║ extension class LanguageApi.                                      ║
+  ║ extension class LanguageApi in the language.api.dart file.        ║
+  ║                                                                   ║
   ║   final urlPath = '/<your language api url path>';                ║
+  ║                                                                   ║
+  ║ * Make sure your backend team follow the json return format. *    ║
   ╚═══════════════════════════════════════════════════════════════════╝
 
   Setup 2: Call instance and initial it, handle error if any.
-  ╔═══════════════════════════════════════════════════════════════════╗
-  ║ RequestException error = await AppLanguage.init();                ║
-  ║ if (error != null) {                                              ║
-  ║   print('i18n.error: ${error.errorMessage}');                     ║
-  ║ }                                                                 ║
-  ╚═══════════════════════════════════════════════════════════════════╝
+  ╔═══════════════════════════════════════════════════════════════════════════════════════════════════════════╗
+  ║ RequestException? error = await AppLanguage.init();                                                       ║
+  ║ if (error != null) {                                                                                      ║
+  ║   print('AppLanguage.init Error: ${error.errorMessage}');                                                 ║
+  ║   await showNativeDialog('Error: ${error.code}', message: error.errorMessage, onDone: checkCredential);   ║
+  ║   return;                                                                                                 ║
+  ║ }                                                                                                         ║
+  ╚═══════════════════════════════════════════════════════════════════════════════════════════════════════════╝
 
-  Step 3: Simply add .tr behind your key string, and you are done.
+  Step 3: Add your custom key in the language_key.dart.
+  ╔════════════════════════════════════════════════════╗
+  ║ static const Your_Custom_Key = 'Your_Custom_Key';  ║
+  ╚════════════════════════════════════════════════════╝
+
+  Step 4: Simply add .tr behind your key string, and you are good to go.
   ╔═════════════════════════════╗
-  ║ Text('YOUR_CUSTOM_KEY'.tr)  ║
+  ║ Text('Your_Custom_Key'.tr)  ║
   ╚═════════════════════════════╝
 
-  GoodLuck :D
+  GoodLuck & Enjoy :D
 
 */
 

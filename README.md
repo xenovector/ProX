@@ -1,6 +1,7 @@
-# ProX
-`[Supported Null Safety]`<br/>
+# ProX `[Supported Null Safety]`
+![GitHub tag (latest by date)](https://img.shields.io/github/v/tag/xenovector/ProX?color=blue&label=tag&logo=v0.0.1&logoColor=orange)<br/>
 ### ProX is a ready setup project template rely on GetX.
+
 <br/>
 
 ## Setup
@@ -153,7 +154,7 @@ class LoadingPage extends StatelessWidget {
           onPressed: () {
             //
           },
-          child: child: Container(padding: EdgeInsets.symmetric(vertical: 12, horizontal: 6), child: Text('Test')),
+          child: Container(padding: EdgeInsets.symmetric(vertical: 12, horizontal: 6), child: Text('Test')),
         ),*/
         Expanded(child: Center(), flex: 10),
         // --- .
@@ -269,17 +270,17 @@ This project template using not only getx but many other plugin as well, below w
   url_launcher:
   app_settings:
   huawei_hmsavailability:
+  flutter_statusbarcolor_ns:
   flutter_inappwebview:
   flutter_keyboard_visibility:
   extended_image:
   audioplayers:
+  vibration: ^1.7.4-nullsafety.0
   version:
+  auto_size_text:
   permission_handler:
   flutter_dialogs:
   share:
-  vibration: ^1.7.4-nullsafety.0
-  auto_size_text: ^3.0.0-nullsafety.0
-  flutter_statusbarcolor_ns: ^0.3.0-nullsafety
 
   # --- listing use ---
   pull_to_refresh:
@@ -289,6 +290,7 @@ This project template using not only getx but many other plugin as well, below w
   # --- camera use ---
   camera:
   image_picker:
+  file_picker:
   pinch_zoom:
   native_device_orientation:
   align_positioned:
@@ -300,8 +302,9 @@ This project template using not only getx but many other plugin as well, below w
   location:
   huawei_location:
   geocoding:
-  google_maps_flutter: ^2.0.3
+  google_maps_flutter:
   huawei_map:
+    # path: lib/ProX/Download/hms/huawei_map
   # --- -------- --- ---
 
   # --- notification use ---
@@ -447,7 +450,7 @@ buildscript {
         classpath 'com.android.tools.build:gradle:4.1.2'
         classpath 'org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version'
   //*   classpath 'com.huawei.agconnect:agcp:1.4.1.300'
-  //*   classpath 'com.google.gms:google-services:4.3.3'
+  //*   classpath 'com.google.gms:google-services:4.3.10'
     }
 }
 
@@ -476,8 +479,12 @@ if (keystorePropertiesFile.exists()) {
 }
 
 android {
+
+   compileSdkVersion 31
+
    defaultConfig {
      minSdkVersion 21
+     targetSdkVersion 31
    }
 
    signingConfigs {
@@ -771,12 +778,12 @@ Also, add `android:name=".Application"` in AndroidManifest.xml.
 		<key>NSAllowsArbitraryLoads</key>
 		<true/>
 	</dict>
-  <key>LSApplicationQueriesSchemes</key>
-  <array>
-    <string>https</string>
-    <string>http</string>
-  </array>
-  <key>UIUserInterfaceStyle</key>
+  	<key>LSApplicationQueriesSchemes</key>
+  	<array>
+    	<string>https</string>
+    	<string>http</string>
+  	</array>
+  	<key>UIUserInterfaceStyle</key>
 	<string>Light</string>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<false/>
@@ -784,7 +791,6 @@ Also, add `android:name=".Application"` in AndroidManifest.xml.
 	<true/>
 ```
 </details>
-
 
 <br />
 
@@ -794,13 +800,13 @@ There is a lot of permission needed to be add into your project based on use cas
 <details><summary><strong>Android</strong></summary>
 
 ````xml
-  <uses-permission android:name="android.permission.INTERNET" />
-  <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
-  <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
-  <uses-permission android:name="android.permission.CAMERA" />
-  <uses-permission android:name="android.permission.ACCESS_COARES_LOCATION" />
-  <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
-  <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" />
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-permission android:name="android.permission.ACCESS_COARES_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" />
 
   <queries>
     <!-- If your app opens https URLs -->
@@ -826,12 +832,12 @@ There is a lot of permission needed to be add into your project based on use cas
 
 Add the following to your `info.plist` based on your own use case:
 ````xml
-  <key>NSPhotoLibraryUsageDescription</key>
-  <string>$(PRODUCT_NAME) would like to request the permission for you to select picture for profile image.</string>
-  <key>NSCameraUsageDescription</key>
-  <string>$(PRODUCT_NAME) would like to request the permission for you to take picture for profile image.</string>
-  <key>NSMicrophoneUsageDescription</key>
-  <string>$(PRODUCT_NAME) would like to request the permission to record your voice for video recording.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>$(PRODUCT_NAME) would like to request the permission for you to select picture for profile image.</string>
+	<key>NSCameraUsageDescription</key>
+	<string>$(PRODUCT_NAME) would like to request the permission for you to take picture for profile image.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>$(PRODUCT_NAME) would like to request the permission to record your voice for video recording.</string>
   <key>NSLocationAlwaysUsageDescription</key>
   <string>$(PRODUCT_NAME) would like to request the permission to getting your current location for pre initialise the services location or add it for  favourite location.</string>
   <key>NSLocationWhenInUseUsageDescription</key>
@@ -852,11 +858,13 @@ Add the following to your `info.plist` based on your own use case:
 </details>
 <br />
 
-## Reminder
-Remember to include flutter `.gitignore` at your project level, you can pull out one from ProX project level to your project level if you doesn't have one.
-
 ## Conveniences
 To increase your productivity, copy `/ProX/.vscode` and place it under your project directory.
+
+<br />
+
+## Reminder
+Remember to include flutter `.gitignore` at your project level, you can pull out one from ProX project level to your project level if you doesn't have one.
 
 <br />
 
