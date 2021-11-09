@@ -1,5 +1,10 @@
-# ProX `[Supported Null Safety]`
-![GitHub tag (latest by date)](https://img.shields.io/github/v/tag/xenovector/ProX?color=blue&label=tag&logo=v0.0.1&logoColor=orange)<br/>
+# ProX
+
+![](https://img.shields.io/badge/Awesome-Flutter-blue)
+![GitHub tag (latest by date)](https://img.shields.io/github/v/tag/xenovector/ProX?color=blue&label=tag&logo=v0.0.2&logoColor=orange)
+![](https://img.shields.io/badge/-Null%20Safety-red)
+
+<br/>
 ### ProX is a ready setup project template rely on GetX.
 
 <br/>
