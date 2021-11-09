@@ -50,3 +50,47 @@
         "description": "ProX Page Snippet"
     }
 }
+
+/*
+  Android Studio Code's Snippets
+  ╔══════════════════════════════════════════════════════════════════════════════════════╗
+  ║ Go to Preferences -> Editor -> Live Template -> Flutter -> Add New Live Template by  ║
+  ║ clicking '+' button on the right there.                                              ║
+  ╚══════════════════════════════════════════════════════════════════════════════════════╝
+
+----- sprinf_error -----
+sprintf(L.GENERAL_ERROR_COLON_CODE.tr, [code])
+
+----- L. -----
+L.$NAME$.tr
+
+----- prox -----
+
+import '../ProX/export.dart';
+
+class $NAME$Binding extends Bindings {
+  @override
+  void dependencies() {
+    Get.put($NAME$Controller());
+    }
+}
+
+class $NAME$Controller extends ProXController {
+  @override
+  void onInit() {
+    super.onInit();
+    }
+
+  void onTap() {
+        //
+    }
+}
+
+class $NAME$Page extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return ProXWidget<$NAME$Controller>(
+        child: GetBuilder<$NAME$Controller>(builder: (ctrl) => Container(child: $END$)));
+    }
+}
+*/
