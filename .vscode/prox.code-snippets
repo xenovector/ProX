@@ -1,4 +1,18 @@
 {
+    "Prox_Snippet_Error": {
+        "prefix": "sprinf_error",
+        "scope": "dart",
+        "body": [
+            "sprintf(L.GENERAL_ERROR_COLON_CODE.tr, [code])"
+        ]
+    },
+    "Prox_Snippet_Label": {
+        "prefix": "L.",
+        "scope": "dart",
+        "body": [
+            "L.$1.tr"
+        ]
+    },
     "Prox_Snippet": {
         "prefix": "prox",
         "scope": "dart",
