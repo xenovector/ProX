@@ -65,7 +65,7 @@ class LoadingBinding extends Bindings {
   }
 }
 
-class LoadingController extends GetxController {
+class LoadingController extends ProXController {
   bool fadeVisible = false;
   bool didInit = false;
   bool showLoading = false;
@@ -101,14 +101,14 @@ class LoadingController extends GetxController {
       }
       return true;
     });
-    this.checkCredential();
+    checkCredential();
   }
 
   @override
   void onReady() async {
     super.onReady();
     await Future.delayed(Duration(milliseconds: 500));
-    this.fadeVisible = true;
+    fadeVisible = true;
     update();
   }
 
@@ -134,9 +134,9 @@ class LoadingController extends GetxController {
   }
 
   void moveToEntryPage() async {
-    if (!didInit)
+    if (!didInit) {
       didInit = true;
-    else {
+    } else {
       bool isHMS = await ProX.isHMS();
       print('isHMS: $isHMS');
       //await getUpdateDevice((code, message, {tryAgain}) async => true);
@@ -147,20 +147,22 @@ class LoadingController extends GetxController {
 }
 
 class LoadingPage extends StatelessWidget {
-  Widget splashScreen() {
+  Widget splashScreen(LoadingController ctrl) {
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         // --- Decline all your widget here.
         Expanded(child: Center(), flex: 9),
-        //FlutterLogo(size: 220),
-        Image.asset('assets/app_logo.png', width: 220),
-        /*ElevatedButton(
+        FlutterLogo(size: 180),
+        //Image.asset('assets/app_logo.png', width: 220),
+        SizedBox(height: 30),
+        ElevatedButton(
           onPressed: () {
-            //
+            print('Hello World!');
+            ctrl.isLoading(true, seconds: 3);
           },
           child: Container(padding: EdgeInsets.symmetric(vertical: 12, horizontal: 6), child: Text('Test')),
-        ),*/
+        ),
         Expanded(child: Center(), flex: 10),
         // --- .
       ],
@@ -171,34 +173,36 @@ class LoadingPage extends StatelessWidget {
   Widget build(BuildContext context) {
     SizeConfig().init(context);
     return Scaffold(
-        body: GetBuilder<LoadingController>(
-            builder: (ctrl) => Container(
-                  color: Colors.black,
-                  child: Stack(
-                    children: [
-                      // Main Loaidng Screen with fade effect.
-                     Positioned.fill(
-                        child: AnimatedOpacity(
-                          opacity: ctrl.fadeVisible ? 1.0 : 0.0,
-                          duration: Duration(milliseconds: 1200),
-                          onEnd: () => ctrl.moveToEntryPage(),
-                          child: splashScreen(),
+        body: ProXWidget<LoadingController>(
+          child: GetBuilder<LoadingController>(
+              builder: (ctrl) => Container(
+                    color: Colors.black,
+                    child: Stack(
+                      children: [
+                        // Main Loaidng Screen with fade effect.
+                        Positioned.fill(
+                          child: AnimatedOpacity(
+                            opacity: ctrl.fadeVisible ? 1.0 : 0.0,
+                            duration: Duration(milliseconds: 1200),
+                            onEnd: () => ctrl.moveToEntryPage(),
+                            child: splashScreen(ctrl),
+                          ),
                         ),
-                      ),
-                      // Loading Widget for initialize purpose.
-                      Positioned.fill(
-                          child: ctrl.showLoading
-                              ? Container(
-                                  width: double.infinity,
-                                  height: double.infinity,
-                                  color: Colors.black26,
-                                  child: Center(
-                                    child: CircularProgressIndicator(),
-                                  ))
-                              : Center()),
-                    ],
-                  ),
-                )));
+                        // Loading Widget for initialize purpose.
+                        Positioned.fill(
+                            child: ctrl.showLoading
+                                ? Container(
+                                    width: double.infinity,
+                                    height: double.infinity,
+                                    color: Colors.black26,
+                                    child: Center(
+                                      child: CircularProgressIndicator(),
+                                    ))
+                                : Center()),
+                      ],
+                    ),
+                  )),
+        ));
   }
 }
 
@@ -797,6 +801,36 @@ Also, add `android:name=".Application"` in AndroidManifest.xml.
 ```
 </details>
 
+<details><summary><strong>Step 2:</strong></summary>
+Add those extra setting for permission plugin in your Podfile, and that's all.
+
+```xml
+  installer.pods_project.targets.each do |target|
+    flutter_additional_ios_build_settings(target)
+    target.build_configurations.each do |config|
+      config.build_settings['GCC_PREPROCESSOR_DEFINITIONS'] ||= [
+        '$(inherited)',
+
+        ## dart: PermissionGroup.camera
+        'PERMISSION_CAMERA=1',
+
+        ## dart: PermissionGroup.microphone
+        'PERMISSION_MICROPHONE=1',
+
+        ## dart: PermissionGroup.photos
+        'PERMISSION_PHOTOS=1',
+
+        ## dart: [PermissionGroup.location, PermissionGroup.locationAlways, PermissionGroup.locationWhenInUse]
+        'PERMISSION_LOCATION=1',
+
+        ## dart: PermissionGroup.notification
+        'PERMISSION_NOTIFICATIONS=1',
+      ]
+    end
+  end
+```
+</details>
+
 <br />
 
 ### Permissions
@@ -859,6 +893,8 @@ Add the following to your `info.plist` based on your own use case:
   <string>$(PRODUCT_NAME) need gallery access to upload new profile picture.</string>
   <key>NSSpeechRecognitionUsageDescription</key>
   <string>$(PRODUCT_NAME) requires Speech access to function properly.</string>
+  <key>NFCReaderUsageDescription</key>
+	<string>$(PRODUCT_NAME) would like to request the permission to read nfc in order to access the data in it.</string>
 ````
 </details>
 <br />
@@ -870,6 +906,17 @@ To increase your productivity, copy `/ProX/.vscode` and place it under your proj
 
 ## Reminder
 Remember to include flutter `.gitignore` at your project level, you can pull out one from ProX project level to your project level if you doesn't have one.
+
+Also, include below rules into your `analysis_options.yaml` file in order to ignore annoying warning.
+
+```
+rules:
+    # avoid_print: false  # Uncomment to disable the `avoid_print` rule
+    # prefer_single_quotes: true  # Uncomment to enable the `prefer_single_quotes` rule
+    prefer_const_constructors: false
+    use_key_in_widget_constructors: false
+    avoid_print: false
+```
 
 <br />
 

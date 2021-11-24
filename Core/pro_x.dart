@@ -179,7 +179,8 @@ typedef GeneralErrorHandle = Future<bool> Function(int code, String msg, {Functi
 
 class ProXController extends GetxController with WidgetsBindingObserver implements GeneralCallBack {
   var scaffoldKey = GlobalKey<ScaffoldState>();
-  RxBool isLoading = false.obs;
+  RxBool _isLoading = false.obs;
+  RxString _onLoadingText = ''.obs;
   RxString selectedLanguage = Get.locale?.languageCode.obs ?? 'en'.obs;
   double _horizontalDown = 0;
   //StreamSubscription subscription;
@@ -229,6 +230,33 @@ class ProXController extends GetxController with WidgetsBindingObserver implemen
       showFlash(data.title, data.message);
       callback();
     });*/
+  }
+
+  void isLoading(bool value,
+      {String textAfterSeconds = 'Just a moment more,\nsorry for keep you waiting...', int seconds = 7}) async {
+    _isLoading(value);
+    if (value && !textAfterSeconds.isEmptyOrNull) {
+      await Future.delayed(Duration(seconds: seconds));
+      if (_isLoading.isTrue) {
+        /*timer = Timer.periodic(Duration(milliseconds: 900), (timer) {
+          var szText = '';
+          if (_onLoadingText.value.endsWith('...')) {
+            szText = _onLoadingText.value.substring(0, _onLoadingText.value.length - 3);
+            szText += '.';
+          } else if (_onLoadingText.value.endsWith('.') || _onLoadingText.value.endsWith('..')) {
+            szText = _onLoadingText.value += '.';
+          } else {
+            szText = textAfterSeconds;
+            if (!szText.endsWith('.')) szText += '.';
+          }
+          _onLoadingText(szText);
+        });*/
+        _onLoadingText(textAfterSeconds);
+      }
+    } else if (!value) {
+      //timer?.cancel();
+      _onLoadingText('');
+    }
   }
 
   void openDrawer() {
@@ -334,18 +362,54 @@ class ProXWidget<T extends ProXController> extends GetView<T> {
                                   )),
                             ),
                       Positioned.fill(
-                          child: controller.isLoading.isTrue
+                          child: controller._isLoading.isTrue
                               ? GestureDetector(
                                   child: ProX.defaultLoadingWidget ??
                                       Container(
                                           width: double.infinity,
                                           height: double.infinity,
                                           color: Colors.black26,
+                                          padding: EdgeInsets.symmetric(horizontal: 30),
                                           child: Center(
-                                            child: CircularProgressIndicator(),
+                                            child: AnimatedContainer(
+                                              duration: Duration(milliseconds: 750),
+                                              //curve: Curves.easeOutExpo,
+                                              padding: EdgeInsets.fromLTRB(15, controller._onLoadingText.value.isEmptyOrNull ? 15 : 50, 15, 10),
+                                              decoration: BoxDecoration(
+                                                  color: controller._onLoadingText.value.isEmptyOrNull
+                                                      ? Colors.white12
+                                                      : Colors.white.withOpacity(0.85),
+                                                  borderRadius: BorderRadius.circular(12),
+                                                  boxShadow: controller._onLoadingText.value.isEmptyOrNull
+                                                      ? null
+                                                      : ProXShadow),
+                                              child: Column(
+                                                mainAxisSize: MainAxisSize.min,
+                                                children: [
+                                                  CircularProgressIndicator(),
+                                                  SizedBox(height: controller._onLoadingText.value.isEmptyOrNull ? 5 : 10),
+                                                  if (!controller._onLoadingText.value.isEmptyOrNull)
+                                                    Container(
+                                                    padding: EdgeInsets.symmetric(vertical: 20),
+                                                    child: Row(
+                                                      children: [
+                                                        Expanded(
+                                                          child: Text(controller._onLoadingText.value,
+                                                              textAlign: TextAlign.center,
+                                                              style: TextStyle(
+                                                                  fontSize: 18,
+                                                                  fontWeight: FontWeight.w600,
+                                                                  color: ThemeColor.main)),
+                                                        ),
+                                                      ],
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
                                           )),
                                   onTap: () {
-                                    //controller.isLoading(false);
+                                    controller.isLoading(false);
                                   },
                                 )
                               : Center()),

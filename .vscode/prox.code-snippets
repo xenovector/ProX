@@ -13,6 +13,37 @@
             "L.$1.tr"
         ]
     },
+    "Prox_Snippet_Object": {
+        "prefix": "model",
+        "scope": "dart",
+        "body": [
+            "import 'package:$WORKSPACE_NAME/ProX/Api/response.dart';",
+            "",
+            "class $1 extends RData {",
+            "\tfinal String? id;",
+            "\tfinal String? name;",
+            "",
+            "\t$1({this.id, this.name});",
+            "",
+            "\tstatic $1? fromJson(Map<String, dynamic>? json) {",
+            "\t\tif (json == null) return null;",
+            "\t\treturn $1(",
+            "\t\t\tid: json['id'],",
+            "\t\t\tname: json['name']",
+            "\t\t);",
+            "\t}",
+            "",
+            "\tstatic List<$1> listFromJson(List? json) {",
+            "\t\tif (json == null) return [];",
+            "\t\tList<$1> list = [];",
+            "\t\tfor (var item in json) {",
+            "\t\t\tlist.add($1.fromJson(item)!);",
+            "\t\t}",
+            "\t\treturn list;",
+            "\t}",
+            "}"
+        ]
+    },
     "Prox_Snippet": {
         "prefix": "prox",
         "scope": "dart",
@@ -50,7 +81,6 @@
         "description": "ProX Page Snippet"
     }
 }
-
 /*
   Android Studio Code's Snippets
   ╔══════════════════════════════════════════════════════════════════════════════════════╗

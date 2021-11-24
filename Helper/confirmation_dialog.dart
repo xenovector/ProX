@@ -87,7 +87,7 @@ Future<bool?> showCancelableDialog(
   Widget cancelButton = Container(
                           margin: EdgeInsets.only(top: 5, bottom: 10),
                           padding: EdgeInsets.symmetric(horizontal: 8),
-                          constraints: BoxConstraints(minHeight: 44),
+                          constraints: BoxConstraints(minHeight: 44, minWidth: 108),
                           child: ElevatedButton(
                             style: ElevatedButton.styleFrom(
                                 primary: ThemeColor.main,
