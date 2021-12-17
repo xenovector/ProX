@@ -360,6 +360,8 @@ assets:
   # To add assets to your application, add an assets section, like this:
   # assets:
   assets:
+    - lib/ProX/Assets/
+    - lib/ProX/Assets/lottie/
     - assets/
     - assets/country/
     - assets/icon/
@@ -490,6 +492,15 @@ if (keystorePropertiesFile.exists()) {
 android {
 
    compileSdkVersion 31
+
+   compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+
+    kotlinOptions {
+        jvmTarget = '1.8'
+    }
 
    defaultConfig {
      minSdkVersion 21
@@ -877,10 +888,10 @@ Add the following to your `info.plist` based on your own use case:
 	<string>$(PRODUCT_NAME) would like to request the permission for you to take picture for profile image.</string>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>$(PRODUCT_NAME) would like to request the permission to record your voice for video recording.</string>
-  <key>NSLocationAlwaysUsageDescription</key>
-  <string>$(PRODUCT_NAME) would like to request the permission to getting your current location for pre initialise the services location or add it for  favourite location.</string>
-  <key>NSLocationWhenInUseUsageDescription</key>
-  <string>$(PRODUCT_NAME) would like to request the permission to getting your current location for pre initialise the services location or add it for  favourite location.</string>
+	<key>NSLocationAlwaysUsageDescription</key>
+	<string>$(PRODUCT_NAME) would like to request the permission to getting your current location for pre initialise the services location or add it for  favourite location.</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>$(PRODUCT_NAME) would like to request the permission to getting your current location for pre initialise the services location or add it for  favourite location.</string>
   <key>NSAppleMusicUsageDescription</key>
   <string>$(PRODUCT_NAME) need access your Media to function properly.</string>
   <key>NSCalendarsUsageDescription</key>

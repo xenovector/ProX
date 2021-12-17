@@ -392,6 +392,72 @@ Widget textWidget(String hint, TextEditingController controller,
   );
 }
 
+Widget passwordWidget(String hint, TextEditingController controller, bool obscureText,
+    {TextInputType inputType = TextInputType.text,
+    FocusNode? focusNode,
+    double marginTop = 20,
+    bool enabled = true,
+    double opacity = 1,
+    Color fontColor = Colors.black,
+    Color fontColorDisable = ThemeColor.disable,
+    void Function(String)? onChanged,
+    void Function(String)? onSubmitted,
+    Function()? visibleCallBack}) {
+  return Stack(
+    children: [
+      Container(
+        width: double.infinity,
+        margin: EdgeInsets.only(top: marginTop, left: marginTop, right: marginTop),
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          color: Colors.white.withOpacity(opacity),
+          borderRadius: BorderRadius.circular(10),
+          // boxShadow: [
+          //   BoxShadow(
+          //     color: Colors.grey.withOpacity(0.5),
+          //     spreadRadius: 0,
+          //     blurRadius: 8,
+          //     offset: Offset(0, 2),
+          //   ),
+          // ],
+        ),
+        child: TextField(
+          enabled: enabled,
+          obscureText: obscureText,
+          controller: controller,
+          focusNode: focusNode,
+          style: TextStyle(fontSize: 15, color: enabled ? fontColor : fontColorDisable),
+          keyboardType: inputType,
+          onChanged: onChanged,
+          onSubmitted: onSubmitted,
+          decoration: InputDecoration(
+              hintText: hint,
+              hintStyle: TextStyle(fontSize: 15, color: fontColorDisable),
+              border: InputBorder.none,
+              contentPadding: EdgeInsets.symmetric(horizontal: 20)),
+        ),
+      ),
+      visibleCallBack != null
+          ? Positioned(
+              top: 0 + marginTop,
+              bottom: 0,
+              right: 0 + marginTop,
+              child: Center(
+                child: IconButton(
+                  icon: Icon(
+                    obscureText ? Icons.visibility_off : Icons.visibility,
+                    color: Colors.grey[400],
+                    size: 20,
+                  ),
+                  onPressed: visibleCallBack,
+                ),
+              ),
+            )
+          : Center()
+    ],
+  );
+}
+
 /*Widget formWidget(String hint, TextEditingController controller,
     {TextInputType inputType = TextInputType.text,
     bool obscureText,
