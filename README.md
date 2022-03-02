@@ -1,7 +1,7 @@
 # ProX
 
 ![](https://img.shields.io/badge/Awesome-Flutter-blue)
-![GitHub tag (latest by date)](https://img.shields.io/github/v/tag/xenovector/ProX?color=blue&label=tag&logo=v0.0.2&logoColor=orange)
+![GitHub tag (latest by date)](https://img.shields.io/github/v/tag/xenovector/ProX?color=blue&label=tag&logo=v0.0.5&logoColor=orange)
 ![](https://img.shields.io/badge/-Null%20Safety-red)
 
 
@@ -27,6 +27,8 @@ pod 'DexterSwift'
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'ProX/export.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 // Notification
 //import 'ProX/Controller/notification_controller.dart';
 // Location
@@ -34,6 +36,7 @@ import 'ProX/export.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
+  Firebase.initializeApp();
   SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(statusBarColor: Colors.transparent));
   ProXStorage.init();
   //NC.init();
@@ -114,21 +117,15 @@ class LoadingController extends ProXController {
 
   void checkCredential() async {
     await DevicePreferences.init();
-    /*RequestException? error = await AppLanguage.init();
-    if (error != null) {
-      print('AppLanguage.init Error: ${error.errorMessage}');
-      await showNativeDialog('Error: ${error.code}', message: error.errorMessage, onDone: checkCredential);
-      return;
-    }*/
-    // ResponseData<PreloadData> res = await getPreload((code, msg) async {
-    //   return true;
-    // });
-    // preload = res.data;
 
-    // await getAppSetting(onFailed);
-    // await getBanks(onFailed);
-    // await getState(onFailed);
-    // await getPhonePrefix(onFailed);
+    // RequestException? error = await AppLanguage.init();
+    // if (error != null) {
+    //   print('AppLanguage.init Error: ${error.errorMessage}');
+    //   await showNativeDialog('Error: ${error.code}', message: error.errorMessage, onDone: checkCredential);
+    //   return;
+    // }
+
+    // await getAppSetting(onFailed); [e.g. phone number prefix, bank name, state list]
 
     moveToEntryPage();
   }
@@ -137,8 +134,6 @@ class LoadingController extends ProXController {
     if (!didInit) {
       didInit = true;
     } else {
-      bool isHMS = await ProX.isHMS();
-      print('isHMS: $isHMS');
       //await getUpdateDevice((code, message, {tryAgain}) async => true);
       //await Future.delayed(Duration(milliseconds: 800));
       //Get.offAll(WalkThroughPage(), binding: WalkThroughBinding());
@@ -224,7 +219,7 @@ ProX.defaultLoadingWidget = Container(
                                     child: CircularProgressIndicator(),
                                 ));
 // Set Status Bar Text Color.
-ProX.setStatusBarTextColor(isWhite: false);
+ProX.setStatusBarTextColor(isWhite: true);
 // Set Status Bar Background Color, usually I don use it because I most of the widget I defined are safeArea top = false.
 ProX.setStatusBarBackground(Colors.blue);
 // Set Allowed Orientation.
@@ -233,6 +228,12 @@ ProX.setAllowedOrientation([DeviceOrientation.portraitUp]);
 bool isHMS = await ProX.isHMS():
 // bool, check device service is running on GMS (google service) or not.
 bool isGMS = await ProX.isGMS():
+// Setting app id for iOS and HMS would make you effortless to call openAppStore() or openForceUpdateDialog(), which redirect user to the store accordingly.
+String iosAppID = 'e.g. 123456789'
+String hmsAppID = 'e.g. 123456789'
+
+openAppStore();
+openForceUpdateDialog();
 ```
 <br />
 
@@ -267,12 +268,11 @@ This project template using not only getx but many other plugin as well, below w
   get:
   get_storage:
   intl:
-  package_info:
-  device_info:
+  package_info_plus:
+  device_info_plus:
   sprintf:
   lottie:
-  connectivity:
-  http:
+  connectivity_plus:
   dio:
   event_bus:
   path_provider:
@@ -284,17 +284,26 @@ This project template using not only getx but many other plugin as well, below w
   flutter_keyboard_visibility:
   extended_image:
   audioplayers:
-  vibration: ^1.7.4-nullsafety.0
   version:
+  flutter_vibrate:
   auto_size_text:
   permission_handler:
   flutter_dialogs:
-  share:
+  share_plus:
 
   # --- listing use ---
   pull_to_refresh:
   flutter_slidable:
   # --- ------- --- ---
+
+  # --- firebase & notification use ---
+  # onesignal_flutter:
+  firebase_core:
+  firebase_messaging:
+  firebase_crashlytics:
+  huawei_push:
+  flutter_fgbg:
+  # --- ------------ --- ---
 
   # --- camera use ---
   camera:
@@ -313,16 +322,7 @@ This project template using not only getx but many other plugin as well, below w
   geocoding:
   google_maps_flutter:
   huawei_map:
-    # path: lib/ProX/Download/hms/huawei_map
   # --- -------- --- ---
-
-  # --- notification use ---
-  # onesignal_flutter:
-  firebase_core:
-  firebase_messaging:
-  huawei_push:
-  flutter_fgbg:
-  # --- ------------ --- ---
 
   # list project base plugin here:
 
@@ -363,7 +363,7 @@ assets:
     - lib/ProX/Assets/
     - lib/ProX/Assets/lottie/
     - assets/
-    - assets/country/
+    - assets/images/
     - assets/icon/
     - assets/lottie/
   #   - images/a_dot_burr.jpeg
@@ -450,15 +450,15 @@ in `/android/build.gradle` , add those which mark with `*`.
 
 ```swift
 buildscript {
-    ext.kotlin_version = '1.5.10' //<-- change it from '1.3.50'
+    ext.kotlin_version = '1.6.10' //<-- change it from '1.3.50'
     repositories {
         google()
-        jcenter()
+        mavenCentral()
   //*   maven { url 'https://developer.huawei.com/repo/' }
     }
 
     dependencies {
-        classpath 'com.android.tools.build:gradle:4.1.2'
+        classpath 'com.android.tools.build:gradle:7.1.2'
         classpath 'org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version'
   //*   classpath 'com.huawei.agconnect:agcp:1.4.1.300'
   //*   classpath 'com.google.gms:google-services:4.3.10'
@@ -468,7 +468,7 @@ buildscript {
 allprojects {
     repositories {
         google()
-        jcenter()
+        mavenCentral()
   //*   maven { url 'https://developer.huawei.com/repo/' }
     }
 }
@@ -491,9 +491,9 @@ if (keystorePropertiesFile.exists()) {
 
 android {
 
-   compileSdkVersion 31
+    compileSdkVersion 31
 
-   compileOptions {
+    compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
     }
@@ -502,12 +502,16 @@ android {
         jvmTarget = '1.8'
     }
 
-   defaultConfig {
-     minSdkVersion 21
-     targetSdkVersion 31
-   }
+    sourceSets {
+        main.java.srcDirs += 'src/main/kotlin'
+    }
 
-   signingConfigs {
+    defaultConfig {
+      minSdkVersion 21
+      targetSdkVersion 31
+    }
+
+    signingConfigs {
         config {
             keyAlias keystoreProperties['keyAlias']
             keyPassword keystoreProperties['keyPassword']
@@ -854,9 +858,10 @@ There is a lot of permission needed to be add into your project based on use cas
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.CAMERA" />
+    <uses-permission android:name="android.permission.VIBRATE"/>
     <uses-permission android:name="android.permission.ACCESS_COARES_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
-    <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" />
+    <!-- <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" /> -->
 
   <queries>
     <!-- If your app opens https URLs -->
@@ -937,7 +942,7 @@ Current Flutter & Dart compatibility breakdown:
 
 | Flutter Version | Dart Version |
 | --------------- | ------------ |
-| ^2.5.x	        | ^2.14.x      |
+| ^2.10.x	        | ^2.16.x      |
 
 <br />
 

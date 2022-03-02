@@ -12,7 +12,7 @@ import '../export.dart';
 
 class ProX {
   /// Set a default background color if needed, default value is `Colors.white`.
-  static Color defaultBackgroundColor = Colors.white;
+  static Color defaultBackgroundColor = ThemeColor.background;
 
   /// Set a background image if needed, default value is null.
   ///
@@ -106,7 +106,7 @@ class ProX {
     );
   }
 
-  static MethodChannel _methodChannel = MethodChannel('com.prox.method_channel/prox');
+  static final MethodChannel _methodChannel = MethodChannel('com.prox.method_channel/prox');
 
   /// 0: HMS Core (APK) is available.
   ///
@@ -122,7 +122,7 @@ class ProX {
   ///
   static Future<bool> isHMS() async {
     if (Platform.isIOS) return false;
-    HmsApiAvailability client = new HmsApiAvailability();
+    HmsApiAvailability client = HmsApiAvailability();
     int status = await client.isHMSAvailable();
     bool _isGMS = await isGMS();
     //return !_isGMS;
@@ -287,6 +287,7 @@ class ProXWidget<T extends ProXController> extends GetView<T> {
   final Drawer? drawer;
   final Widget child;
   final Color? customBackgroundColor;
+  final Color? customBackgroundColor2;
   final String? customBackgroundImage;
 
   ProXWidget(
@@ -298,6 +299,7 @@ class ProXWidget<T extends ProXController> extends GetView<T> {
       this.drawer,
       required this.child,
       this.customBackgroundColor,
+      this.customBackgroundColor2,
       this.customBackgroundImage})
       : super(key: key);
 
@@ -307,6 +309,7 @@ class ProXWidget<T extends ProXController> extends GetView<T> {
       key: controller.scaffoldKey,
       drawer: drawer,
       extendBodyBehindAppBar: true,
+      resizeToAvoidBottomInset: false,
       body: Obx(() => WillPopScope(
             onWillPop: controller.onHandleWillPop,
             child: GestureDetector(
@@ -328,7 +331,14 @@ class ProXWidget<T extends ProXController> extends GetView<T> {
                           child: (customBackgroundImage != null || ProX.defaultBackgroundImageAssetsPath != null)
                               ? Image.asset(customBackgroundImage ?? ProX.defaultBackgroundImageAssetsPath!,
                                   fit: BoxFit.cover)
-                              : Container(color: customBackgroundColor ?? ProX.defaultBackgroundColor)),
+                              : customBackgroundColor2 == null
+                                  ? Container(color: customBackgroundColor ?? ProX.defaultBackgroundColor)
+                                  : Column(
+                                      children: [
+                                        Expanded(child: Container(color: customBackgroundColor)),
+                                        Expanded(child: Container(color: customBackgroundColor2))
+                                      ],
+                                    )),
                       Positioned.fill(
                           top: appBar == null ? 0 : SizeConfig.topSafeAreaHeight + kToolbarHeight, child: child),
                       appBar == null
@@ -374,7 +384,8 @@ class ProXWidget<T extends ProXController> extends GetView<T> {
                                             child: AnimatedContainer(
                                               duration: Duration(milliseconds: 750),
                                               //curve: Curves.easeOutExpo,
-                                              padding: EdgeInsets.fromLTRB(15, controller._onLoadingText.value.isEmptyOrNull ? 15 : 50, 15, 10),
+                                              padding: EdgeInsets.fromLTRB(
+                                                  15, controller._onLoadingText.value.isEmptyOrNull ? 15 : 50, 15, 10),
                                               decoration: BoxDecoration(
                                                   color: controller._onLoadingText.value.isEmptyOrNull
                                                       ? Colors.white12
@@ -387,23 +398,24 @@ class ProXWidget<T extends ProXController> extends GetView<T> {
                                                 mainAxisSize: MainAxisSize.min,
                                                 children: [
                                                   CircularProgressIndicator(),
-                                                  SizedBox(height: controller._onLoadingText.value.isEmptyOrNull ? 5 : 10),
+                                                  SizedBox(
+                                                      height: controller._onLoadingText.value.isEmptyOrNull ? 5 : 10),
                                                   if (!controller._onLoadingText.value.isEmptyOrNull)
                                                     Container(
-                                                    padding: EdgeInsets.symmetric(vertical: 20),
-                                                    child: Row(
-                                                      children: [
-                                                        Expanded(
-                                                          child: Text(controller._onLoadingText.value,
-                                                              textAlign: TextAlign.center,
-                                                              style: TextStyle(
-                                                                  fontSize: 18,
-                                                                  fontWeight: FontWeight.w600,
-                                                                  color: ThemeColor.main)),
-                                                        ),
-                                                      ],
+                                                      padding: EdgeInsets.symmetric(vertical: 20),
+                                                      child: Row(
+                                                        children: [
+                                                          Expanded(
+                                                            child: Text(controller._onLoadingText.value,
+                                                                textAlign: TextAlign.center,
+                                                                style: TextStyle(
+                                                                    fontSize: 18,
+                                                                    fontWeight: FontWeight.w600,
+                                                                    color: ThemeColor.main)),
+                                                          ),
+                                                        ],
+                                                      ),
                                                     ),
-                                                  ),
                                                 ],
                                               ),
                                             ),

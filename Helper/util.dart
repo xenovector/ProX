@@ -7,7 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
 import 'package:audioplayers/audioplayers.dart';
-import 'package:vibration/vibration.dart';
+import 'package:flutter_vibrate/flutter_vibrate.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:path_provider/path_provider.dart';
 import '../Controller/notification_controller.dart';
@@ -183,18 +183,22 @@ Future<List<WeekDay>?> showWeekDayPicker({List<WeekDay>? initialWeekDay, String 
 }
 
 void vibrate() async {
-  var canVibrate = await Vibration.hasVibrator();
-  if (canVibrate ?? false) {
-    if (defaultTargetPlatform == TargetPlatform.android) {
-      Vibration.vibrate(duration: 300);
-    } else {
-      Vibration.vibrate(duration: 300);
-    }
-  }
+  var canVibrate = await Vibrate.canVibrate;
+  if (canVibrate) Vibrate.vibrate();
+
+  /*
+  final Iterable<Duration> pauses = [
+    const Duration(milliseconds: 500),
+    const Duration(milliseconds: 1000),
+    const Duration(milliseconds: 500),
+  ];
+  // vibrate - sleep 0.5s - vibrate - sleep 1s - vibrate - sleep 0.5s - vibrate
+  Vibrate.vibrateWithPauses(pauses);
+  */
 }
 
 Future<void> playSound(String name) async {
-  AudioCache cache = new AudioCache();
+  AudioCache cache = AudioCache();
   await cache.play(name);
 }
 
@@ -233,7 +237,7 @@ Future<dynamic> showInAppBrowser(String url, {String? appBarTitle, Map<String, S
 }
 
 void dismissKeyboard(BuildContext context) {
-  FocusScope.of(context).requestFocus(new FocusNode());
+  FocusScope.of(context).requestFocus(FocusNode());
 }
 
 void openForceUpdateDialog({String? title, String? message}) async {
@@ -331,11 +335,11 @@ Future<File> downloadFile(String url, String filename) async {
   String path = '$dir/$filename';
   bool isExist = await File(path).exists();
   if (isExist) return File(path);
-  var httpClient = new HttpClient();
+  var httpClient = HttpClient();
   var request = await httpClient.getUrl(Uri.parse(url));
   var response = await request.close();
   var bytes = await consolidateHttpClientResponseBytes(response);
-  File file = new File(path);
+  File file = File(path);
   await file.writeAsBytes(bytes);
   return file;
 }

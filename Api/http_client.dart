@@ -3,12 +3,12 @@ import 'dart:io';
 import 'dart:convert';
 import 'package:http/http.dart';
 import 'package:path/path.dart';
-import 'package:connectivity/connectivity.dart';
-import 'response.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'api_setting.dart';
+import 'response.dart';
 import '../i18n/app_language.dart';
 import '../Helper/device.dart';
-import '../Core/pro_x_storage.dart' as ProXStorage;
+import '../Core/pro_x_storage.dart' as storage;
 import '../Core/extension.dart';
 import '../Core/pro_x.dart';
 
@@ -131,7 +131,7 @@ Future<ResponseData<T>> requestFilter<T extends RData>(RequestTask request,
       ? {}
       : request.headerType == HeaderType.authorized
           ? {
-              HttpHeaders.authorizationHeader: "Bearer ${request.preAccessToken ?? ProXStorage.accessToken.val}",
+              HttpHeaders.authorizationHeader: "Bearer ${request.preAccessToken ?? storage.accessToken.val}",
               HttpHeaders.acceptHeader: acceptHeader,
               HttpHeaders.contentTypeHeader: requestMethod == HttpMethod.multipart ? multipartHeader : contentHeader,
               'App-Version': DevicePreferences.version,
@@ -199,7 +199,7 @@ Future<ResponseData<T>> requestFilter<T extends RData>(RequestTask request,
           ));
         });
       } else {
-        if (request.files.length > 0) {
+        if (request.files.isNotEmpty) {
           if (request.files.length > 1 || request.forceFileArray) {
             for (int i = 0; i < request.files.length; i++) {
               File file = request.files[i];

@@ -74,9 +74,11 @@ class ProXLocation {
       Location _l = Location.instance;
       if (shouldEnableBackgroundService) {
         bool backgroundEnable = await _l.isBackgroundModeEnabled();
-        if (!backgroundEnable) await _l.enableBackgroundMode();
+        if (!backgroundEnable) await _l.enableBackgroundMode(enable: true);
       }
-      LocationData location = await _l.getLocation();
+      LocationData location = await _l.getLocation().timeout(Duration(seconds: 3), onTimeout: () {
+        return _l.getLocation();
+      });
       longitude = double.parse((location.longitude ?? 0).toStringAsFixed(12));
       latitude = double.parse((location.latitude ?? 0).toStringAsFixed(12));
       altitude = double.parse((location.altitude ?? 0).toString());

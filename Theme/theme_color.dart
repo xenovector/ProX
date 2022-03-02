@@ -33,7 +33,7 @@ class ThemeColor {
   //ProX's Color
   static const disable = Color(0x29000000);
   static const tickGreen = Color(0xFF1EA328);
-  static const dialog_error_color = Color(0xFFFC6666);
+  static const dialogErrorColor = Color(0xFFFC6666);
 
   // Custom
   static const light_black = Color(0xFFA8A8A8);

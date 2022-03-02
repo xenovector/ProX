@@ -34,28 +34,28 @@ class ResponseData<R extends RData> {
     if (_status) {
       switch (R) {
         case AccessToken:
-          mData = AccessToken.fromJson(jsonData) as R;
+          mData = AccessToken.fromJson(jsonData) as R?;
           break;
         case BoolResponse:
-          mData = BoolResponse.fromJson(jsonData) as R;
+          mData = BoolResponse.fromJson(jsonData) as R?;
           break;
         case LabelSupport:
-          mData = LabelSupport.fromJson(jsonData) as R;
+          mData = LabelSupport.fromJson(jsonData) as R?;
           break;
         case LabelInfo:
-          mData = LabelInfo.fromJson('', jsonData) as R;
+          mData = LabelInfo.fromJson('', jsonData) as R?;
           break;
         case UserJson:
-          mData = UserJson.fromJson(jsonData) as R;
+          mData = UserJson.fromJson(jsonData) as R?;
           break;
         case UserItem:
-          mData = UserItem.fromJson(jsonData) as R;
+          mData = UserItem.fromJson(jsonData) as R?;
           break;
         case Preload:
           if (jsonData is List) {
             mDatas = Preload.listFromJson(jsonData) as List<R>;
           } else {
-            mData = Preload.fromJson(jsonData) as R;
+            mData = Preload.fromJson(jsonData) as R?;
           }
           break;
         default:

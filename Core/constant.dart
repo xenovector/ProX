@@ -9,7 +9,7 @@ const Test_Message =
     'Lorem test text, this message is a Lorem testing message to test the UI in different length situation.';
 
 // GoogleApiKey for Map API or Cloud API
-// var googleApiKey = 'AIzaSyArUIWzNvSv-cj2awcUapj7oxef0BzKLF0';
+// var googleApiKey = Platform.isIOS ? 'AIzaSyCbc01f6kjlvBICieUTTQqVwyBDwHxwQsQ' : 'AIzaSyB4GHJE6NOqo7_mquW2wCTVL05PuplUuLA';
 
 // Social Login
 /*final FacebookLogin facebookSignIn = new FacebookLogin();
