@@ -1,5 +1,5 @@
 import 'languages.dart';
-import '../Api/http_client.dart';
+import '../Api/dio_client.dart';
 import '../Api/response.dart';
 
 class LabelHandleError<T> {
@@ -14,7 +14,8 @@ class LabelSupport extends RData {
 
   LabelSupport({required this.supportedLocale, required this.labelInfoList});
 
-  static LabelSupport? fromJson(Map<String, dynamic>? json) {
+  @override
+  LabelSupport? fromJson(Map<String, dynamic>? json) {
     if (json == null) {
       return null;
     }
@@ -35,9 +36,14 @@ class LabelSupport extends RData {
       labelInfoList: _labelInfoList,
     );
   }
+
+  @override
+  listFromJson(List? json) {
+    throw UnimplementedError();
+  }
 }
 
-class LabelInfo extends RData {
+class LabelInfo {
   String locale;
   final String name;
   final String imgUrl;
@@ -59,12 +65,15 @@ class LabelInfo extends RData {
     if (json == null) {
       return null;
     }
+    //Map<dynamic, dynamic> _mapX = json[AppLanguage.Label_MapData_JsonKey];
+    //_mapX.forEach((key, value) { print('key: $key, value: $value'); });
+    //print(' --- | ---');
     Map<String, dynamic> _map = json[AppLanguage.Label_MapData_JsonKey];
     return LabelInfo(
       locale: key,
       name: json[AppLanguage.Label_Language_Name],
-      imgUrl: json[AppLanguage.Label_Locale_Image],
-      version: json[AppLanguage.Label_Version_JsonKey],
+      imgUrl: json.containsKey(AppLanguage.Label_Locale_Image) ? json[AppLanguage.Label_Locale_Image] : '',
+      version: json.containsKey(AppLanguage.Label_Version_Long_JsonKey) ? json[AppLanguage.Label_Version_Long_JsonKey] : json[AppLanguage.Label_Version_Short_JsonKey],
       data: json,
       map: _map.toMapString(),
       isSelected: false,

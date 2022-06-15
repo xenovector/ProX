@@ -1,7 +1,7 @@
+// ignore_for_file: prefer_final_fields
+
 import 'dart:async';
 import 'dart:io';
-import 'dart:ui';
-import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
 import 'package:flutter_statusbarcolor_ns/flutter_statusbarcolor_ns.dart';
@@ -12,7 +12,7 @@ import '../export.dart';
 
 class ProX {
   /// Set a default background color if needed, default value is `Colors.white`.
-  static Color defaultBackgroundColor = ThemeColor.background;
+  static Color defaultBackgroundColor = S.color.background;
 
   /// Set a background image if needed, default value is null.
   ///
@@ -25,7 +25,6 @@ class ProX {
   /// By default have a function called forceUpdate(),
   /// which straight redirect user to the store when needed,
   /// but ios and hms required to manually insert the id.
-  static String iosAppID = '', hmsAppID = '';
 
   /// A reusable image place holder, default value is `lib/ProX/Assets/empty_img.png`.
   static String placeHolderImage = 'lib/ProX/Assets/empty_img.png';
@@ -155,17 +154,18 @@ class ProX {
   }
 
   static Future<double> getSystemBottomSafeAreaHeight({bool forceAndroidZero = true}) async {
-    if (Platform.isIOS) {
-      return Get.mediaQuery.viewPadding.bottom;
-    }
-    if (forceAndroidZero) return 0;
-    try {
-      int result = await _methodChannel.invokeMethod('navigationBarHeight');
-      return result / Get.mediaQuery.devicePixelRatio;
-    } on PlatformException {
-      print('Failed to get navigationBarHeight.');
-      return 0;
-    }
+    return Get.mediaQuery.viewPadding.bottom;
+    // if (Platform.isIOS) {
+    //   return Get.mediaQuery.viewPadding.bottom;
+    // }
+    // if (forceAndroidZero) return 0;
+    // try {
+    //   int result = await _methodChannel.invokeMethod('navigationBarHeight');
+    //   return result / Get.mediaQuery.devicePixelRatio;
+    // } on PlatformException {
+    //   print('Failed to get navigationBarHeight.');
+    //   return 0;
+    // }
   }
 
   static GeneralErrorHandle onFailed = ((code, msg, {tryAgain}) async => true);
@@ -187,7 +187,7 @@ class ProXController extends GetxController with WidgetsBindingObserver implemen
 
   @override
   void onInit() {
-    WidgetsBinding.instance?.addObserver(this);
+    WidgetsBinding.instance.addObserver(this);
     super.onInit();
   }
 
@@ -198,7 +198,7 @@ class ProXController extends GetxController with WidgetsBindingObserver implemen
 
   @override
   void onClose() {
-    WidgetsBinding.instance?.removeObserver(this);
+    WidgetsBinding.instance.removeObserver(this);
     //subscription?.cancel();
     super.onClose();
   }
@@ -268,7 +268,7 @@ class ProXController extends GetxController with WidgetsBindingObserver implemen
   }
 
   set changeLanguage(String lang) {
-    Locale locale = new Locale(lang);
+    Locale locale = Locale(lang);
     Get.updateLocale(locale);
     selectedLanguage.value = lang;
   }
@@ -284,23 +284,29 @@ class ProXWidget<T extends ProXController> extends GetView<T> {
   final Color? appBarColor;
   final Gradient? appBarGradient;
   final bool appBarWithShadow;
+  final Widget? floatingActionButton;
+  final FloatingActionButtonLocation? floatingActionButtonLocation;
   final Drawer? drawer;
   final Widget child;
   final Color? customBackgroundColor;
   final Color? customBackgroundColor2;
   final String? customBackgroundImage;
+  final Widget? overlayChild;
 
-  ProXWidget(
+  const ProXWidget(
       {Key? key,
       this.appBar,
       this.appBarColor,
       this.appBarGradient,
       this.appBarWithShadow = true,
+      this.floatingActionButton,
+      this.floatingActionButtonLocation,
       this.drawer,
       required this.child,
       this.customBackgroundColor,
       this.customBackgroundColor2,
-      this.customBackgroundImage})
+      this.customBackgroundImage,
+      this.overlayChild})
       : super(key: key);
 
   @override
@@ -309,7 +315,8 @@ class ProXWidget<T extends ProXController> extends GetView<T> {
       key: controller.scaffoldKey,
       drawer: drawer,
       extendBodyBehindAppBar: true,
-      resizeToAvoidBottomInset: false,
+      floatingActionButton: floatingActionButton,
+      floatingActionButtonLocation: floatingActionButtonLocation,
       body: Obx(() => WillPopScope(
             onWillPop: controller.onHandleWillPop,
             child: GestureDetector(
@@ -371,6 +378,7 @@ class ProXWidget<T extends ProXController> extends GetView<T> {
                                     ],
                                   )),
                             ),
+                      if (overlayChild != null) Positioned.fill(child: overlayChild!),
                       Positioned.fill(
                           child: controller._isLoading.isTrue
                               ? GestureDetector(
@@ -379,7 +387,7 @@ class ProXWidget<T extends ProXController> extends GetView<T> {
                                           width: double.infinity,
                                           height: double.infinity,
                                           color: Colors.black26,
-                                          padding: EdgeInsets.symmetric(horizontal: 30),
+                                          padding: EdgeInsets.symmetric(horizontal: 60),
                                           child: Center(
                                             child: AnimatedContainer(
                                               duration: Duration(milliseconds: 750),
@@ -393,11 +401,11 @@ class ProXWidget<T extends ProXController> extends GetView<T> {
                                                   borderRadius: BorderRadius.circular(12),
                                                   boxShadow: controller._onLoadingText.value.isEmptyOrNull
                                                       ? null
-                                                      : ProXShadow),
+                                                      : proXShadow),
                                               child: Column(
                                                 mainAxisSize: MainAxisSize.min,
                                                 children: [
-                                                  CircularProgressIndicator(),
+                                                  CircularProgressIndicator(color: S.color.main),
                                                   SizedBox(
                                                       height: controller._onLoadingText.value.isEmptyOrNull ? 5 : 10),
                                                   if (!controller._onLoadingText.value.isEmptyOrNull)
@@ -409,9 +417,9 @@ class ProXWidget<T extends ProXController> extends GetView<T> {
                                                             child: Text(controller._onLoadingText.value,
                                                                 textAlign: TextAlign.center,
                                                                 style: TextStyle(
-                                                                    fontSize: 18,
-                                                                    fontWeight: FontWeight.w600,
-                                                                    color: ThemeColor.main)),
+                                                                    fontSize: 17,
+                                                                    fontWeight: FontWeight.w500,
+                                                                    color: S.color.main)),
                                                           ),
                                                         ],
                                                       ),
@@ -421,7 +429,7 @@ class ProXWidget<T extends ProXController> extends GetView<T> {
                                             ),
                                           )),
                                   onTap: () {
-                                    controller.isLoading(false);
+                                    //controller.isLoading(false);
                                   },
                                 )
                               : Center()),
@@ -439,7 +447,7 @@ class ProXSafeArea extends StatelessWidget {
   final Widget child;
   final bool top;
   final bool bottom;
-  ProXSafeArea({required this.child, this.top = true, this.bottom = true});
+  const ProXSafeArea({required this.child, this.top = true, this.bottom = true});
 
   @override
   Widget build(BuildContext context) {
@@ -456,7 +464,7 @@ class ProXSafeArea extends StatelessWidget {
 class ProXDebugWidget extends StatelessWidget {
   final Widget child;
   final Color color;
-  ProXDebugWidget({required this.child, this.color = Colors.blue});
+  const ProXDebugWidget({required this.child, this.color = Colors.blue});
 
   @override
   Widget build(BuildContext context) {
@@ -469,26 +477,41 @@ class ProXDebugWidget extends StatelessWidget {
 
 class ProXWorkInProgressWidget extends StatelessWidget {
   final String text;
-  ProXWorkInProgressWidget({this.text = 'Work In Progress...'});
+  const ProXWorkInProgressWidget({this.text = 'Work In Progress...'});
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-        child: Center(
-            child: Column(
+    return Center(
+        child: Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         Lottie.network('https://assets2.lottiefiles.com/packages/lf20_8uHQ7s.json', width: 300, reverse: true),
         SizedBox(height: 20),
         Text(text),
       ],
-    )));
+    ));
   }
 }
 
-const ProXShadow = [
+const proXShadow = [
   BoxShadow(
     color: Colors.black12,
+    offset: Offset(0, 1),
+    blurRadius: 2,
+  )
+];
+
+const proXShadowX2 = [
+  BoxShadow(
+    color: Colors.black12,
+    offset: Offset(0, 2),
+    blurRadius: 4,
+  )
+];
+
+const proXShadowHalfDark = [
+  BoxShadow(
+    color: Colors.black54,
     offset: Offset(0, 1),
     blurRadius: 2,
   )

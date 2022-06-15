@@ -47,11 +47,11 @@ class ProXDialogPage extends StatelessWidget {
               margin: EdgeInsets.symmetric(vertical: 3, horizontal: 36),
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(8),
-                  border: ctrl.selectedIndex == index ? Border.all(color: ThemeColor.main, width: 1.5) : null
+                  border: ctrl.selectedIndex == index ? Border.all(color: S.color.main, width: 1.5) : null
                 ),
               child: Center(
                 child: Text(ctrl.itemList[index],
-                    textAlign: TextAlign.center, style: TextStyle(color: ThemeColor.text, fontWeight: FontWeight.w400),),
+                    textAlign: TextAlign.center, style: TextStyle(color: S.color.text, fontWeight: FontWeight.w400),),
               )),
           onPressed: () {
             ctrl.selectedIndex = ctrl.selectedIndex == index ? null : index;
@@ -94,7 +94,7 @@ class ProXDialogPage extends StatelessWidget {
                                   child: Text(title,
                                       textAlign: TextAlign.center,
                                       style:
-                                          TextStyle(color: ThemeColor.main, fontSize: 20, fontWeight: FontWeight.bold)),
+                                          TextStyle(color: S.color.main, fontSize: 20, fontWeight: FontWeight.bold)),
                                 ),
                               ],
                             ),
@@ -110,7 +110,7 @@ class ProXDialogPage extends StatelessWidget {
                                     child: Text(btnLabel,
                                         textAlign: TextAlign.center,
                                         style: TextStyle(
-                                            color: ctrl.selectedIndex == null ? ThemeColor.disable : ThemeColor.main,
+                                            color: ctrl.selectedIndex == null ? S.color.disable : S.color.main,
                                             fontSize: 16,
                                             fontWeight: FontWeight.w500)),
                                   )),

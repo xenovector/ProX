@@ -7,7 +7,7 @@ import 'package:path/path.dart';
 extension MapDynamicValueToString on Map<String, dynamic> {
   Map<String, String> toMapString() {
     Map<String, String> _szMap = {};
-    this.forEach((key, value) {
+    forEach((key, value) {
       if (value is String) {
         _szMap[key] = value.replaceAll("\\n", '\n');
       } else {
@@ -34,7 +34,7 @@ extension DynamicListToStringList on List<dynamic> {
 
 extension ProXFile on File {
   String get name {
-    return basename(this.path);
+    return basename(path);
   }
 }
 
@@ -57,17 +57,31 @@ extension HexColor on Color {
 
 extension ProXInt on int {
   bool startsWith(int value) {
-    return this.toString().startsWith('$value');
+    return toString().startsWith('$value');
   }
 
   bool endsWith(int value) {
-    return this.toString().endsWith('$value');
+    return toString().endsWith('$value');
   }
 }
 
 extension ProXDouble on double {
+  bool inTheRange({required double d1, required double d2, String debugName = ''}) {
+    bool inRange = this > d1 && this < d2;
+    if (debugName != '' && !inRange) {
+      if (this > d1) {
+        print('$debugName Not In Range: exceed d2 ${this - d2}');
+      } else if (this < d2) {
+        print('$debugName Not In Range: below d1 ${d1 - this}');
+      } else {
+        print('$debugName Something wrong: this:$this, d1: $d1, d2: $d2');
+      }
+    }
+    return inRange;
+  }
+
   String roundOff(int digit) {
-    int rounded = this.round();
+    int rounded = round();
     int totalDigits = rounded.toString().length;
     num dd = pow(10, totalDigits - 1);
     String sz = (rounded / dd).toStringAsFixed(digit - 1);
@@ -82,11 +96,11 @@ extension ProXDouble on double {
 
 extension ProXString on String {
   String toFirstUpperCaseOnly() {
-    return "${this[0].toUpperCase()}${this.substring(1).toLowerCase()}";
+    return "${this[0].toUpperCase()}${substring(1).toLowerCase()}";
   }
 
   String lowerCaseAMPM() {
-    return this.replaceAll('PM', 'pm').replaceAll('AM', 'am');
+    return replaceAll('PM', 'pm').replaceAll('AM', 'am');
   }
 
   /// ```dart
@@ -106,11 +120,11 @@ extension ProXString on String {
   bool isPasswordCompliant([int minLength = 8]) {
     if (this == '') return false;
 
-    bool hasUppercase = this.contains(RegExp(r'[A-Z]'));
-    bool hasDigits = this.contains(RegExp(r'[0-9]'));
-    bool hasLowercase = this.contains(RegExp(r'[a-z]'));
+    bool hasUppercase = contains(RegExp(r'[A-Z]'));
+    bool hasDigits = contains(RegExp(r'[0-9]'));
+    bool hasLowercase = contains(RegExp(r'[a-z]'));
     //bool hasSpecialCharacters = this.contains(RegExp(r'[!@#$%^&*(),.?":{}|<>]'));
-    bool hasMinLength = this.length >= minLength;
+    bool hasMinLength = length >= minLength;
 
     return hasDigits & hasUppercase & hasLowercase /*& hasSpecialCharacters*/ & hasMinLength;
   }
@@ -163,7 +177,7 @@ extension ProXNullableString on String? {
     if (this == null || this == '') return false;
     String pattern =
         r'^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$';
-    RegExp regex = new RegExp(pattern);
+    RegExp regex = RegExp(pattern);
     return (!regex.hasMatch(this!)) ? false : true;
   }
 }

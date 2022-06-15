@@ -5,12 +5,12 @@ import '../export.dart';
 
 class AnimatedFab extends StatefulWidget {
   final double buttonSize;
-  final Color buttonColor;
+  final Color? buttonColor;
   final List<IconData> listOfIcons;
   final List<String> listOfText;
   final void Function(int) onPressed;
   AnimatedFab(
-      {required this.listOfIcons, required this.onPressed, this.listOfText = const [], this.buttonColor = ThemeColor.main, this.buttonSize = 50});
+      {required this.listOfIcons, required this.onPressed, this.listOfText = const [], this.buttonColor, this.buttonSize = 50});
   @override
   _AnimatedFabState createState() => _AnimatedFabState();
 }
@@ -84,10 +84,10 @@ class _AnimatedFabState extends State<AnimatedFab> with SingleTickerProviderStat
           height: 56,
           width: 56,
           decoration: BoxDecoration(
-              color: widget.buttonColor,
-              border: Border.all(color: widget.buttonColor),
+              color: widget.buttonColor ?? S.color.main,
+              border: Border.all(color: widget.buttonColor ?? S.color.main),
               borderRadius: BorderRadius.circular(28),
-              boxShadow: ProXShadow),
+              boxShadow: proXShadow),
           child: Center(
             child: AnimatedIcon(
               icon: AnimatedIcons.menu_close,
@@ -126,7 +126,7 @@ class _AnimatedFabState extends State<AnimatedFab> with SingleTickerProviderStat
                   height: widget.buttonSize,
                   width: widget.buttonSize,
                   decoration: BoxDecoration(
-                      color: ThemeColor.main,
+                      color: S.color.main,
                       borderRadius: BorderRadius.circular(
                         widget.buttonSize / 2,
                       )),

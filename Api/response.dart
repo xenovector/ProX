@@ -1,9 +1,12 @@
-import 'http_client.dart';
-import '../i18n/label_model.dart';
-import '../model/preload.dart';
-import '../model/user.dart';
+import 'dio_client.dart';
 
+abstract class RData {
+  const RData();
 
+  fromJson(Map<String, dynamic>? json);
+
+  listFromJson(List? json);
+}
 class ResponseData<R extends RData> {
   final bool status;
   final int code;
@@ -16,12 +19,12 @@ class ResponseData<R extends RData> {
 
   const ResponseData({this.status = false, this.code = 0, this.message = '', this.data, this.datas, this.total, this.rawData, this.error});
 
-  factory ResponseData.fromJson(Map<String, dynamic>? json) {
+  factory ResponseData.fromJson(R item, Map<String, dynamic>? json) {
     if (json == null) return ResponseData<R>();
     //print('Response.json: $json');
 
     var jsonData = json['data'];
-    if (jsonData is List && jsonData.length == 0) jsonData = null;
+    if (jsonData is List && jsonData.isEmpty) jsonData = null;
 
     bool _status = json.containsKey('status')
         ? json['status']
@@ -32,36 +35,13 @@ class ResponseData<R extends RData> {
     R? mData;
     List<R>? mDatas;
     if (_status) {
-      switch (R) {
-        case AccessToken:
-          mData = AccessToken.fromJson(jsonData) as R?;
-          break;
-        case BoolResponse:
-          mData = BoolResponse.fromJson(jsonData) as R?;
-          break;
-        case LabelSupport:
-          mData = LabelSupport.fromJson(jsonData) as R?;
-          break;
-        case LabelInfo:
-          mData = LabelInfo.fromJson('', jsonData) as R?;
-          break;
-        case UserJson:
-          mData = UserJson.fromJson(jsonData) as R?;
-          break;
-        case UserItem:
-          mData = UserItem.fromJson(jsonData) as R?;
-          break;
-        case Preload:
-          if (jsonData is List) {
-            mDatas = Preload.listFromJson(jsonData) as List<R>;
-          } else {
-            mData = Preload.fromJson(jsonData) as R?;
-          }
-          break;
-        default:
-          break;
+      if (jsonData is List) {
+        mDatas = item.listFromJson(jsonData);
+      } else {
+        mData = item.fromJson(jsonData);
       }
     }
+
     return ResponseData<R>(
       status: _status,
       code: json.containsKey('code') ? json['code'] : 0,
@@ -73,21 +53,7 @@ class ResponseData<R extends RData> {
   }
 }
 
-abstract class RData {
-  //const RData();
-}
-
-class AccessToken {
-  final String accessToken;
-
-  AccessToken(this.accessToken);
-
-  factory AccessToken.fromJson(Map<String, dynamic>? json) {
-    if (json == null) return AccessToken('');
-    return AccessToken(json['access_token']);
-  }
-}
-
+/*
 class BoolResponse {
   final bool isTrue;
 
@@ -110,3 +76,4 @@ class BoolResponse {
     }
   }
 }
+*/

@@ -4,11 +4,28 @@ class UserJson extends RData {
   final UserItem? user;
   final String? accessToken;
 
+  static final shared = UserJson();
+
   UserJson({this.user, this.accessToken});
 
-  static UserJson? fromJson(Map<String, dynamic>? json) {
+  factory UserJson.fromJson(Map<String, dynamic> json) {
+    return UserJson(user: UserItem.shared.fromJson(json['user']), accessToken: json['access_token']);
+  }
+
+  @override
+  UserJson? fromJson(Map<String, dynamic>? json) {
     if (json == null) return null;
-    return UserJson(user: UserItem.fromJson(json['user']), accessToken: json['access_token']);
+    return UserJson.fromJson(json);
+  }
+
+  @override
+  listFromJson(List? json) {
+    if (json == null) return [];
+    List<UserJson> list = [];
+    for (var item in json) {
+      list.add(UserJson.fromJson(item));
+    }
+    return list;
   }
 }
 
@@ -29,6 +46,8 @@ class UserItem extends RData {
   final String? countryState;
   final String? createAt;
 
+  static final shared = UserItem();
+
   UserItem(
       {this.id,
       this.name,
@@ -46,8 +65,7 @@ class UserItem extends RData {
       this.countryState,
       this.createAt});
 
-  static UserItem? fromJson(Map<String, dynamic>? json) {
-    if (json == null) return null;
+  factory UserItem.fromJson(Map<String, dynamic> json) {
     return UserItem(
         id: json['id'],
         name: json['name'],
@@ -64,5 +82,21 @@ class UserItem extends RData {
         city: json['city'],
         countryState: json['country_state'],
         createAt: json['created_at']);
+  }
+
+  @override
+  UserItem? fromJson(Map<String, dynamic>? json) {
+    if (json == null) return null;
+    return UserItem.fromJson(json);
+  }
+
+  @override
+  listFromJson(List? json) {
+    if (json == null) return [];
+    List<UserItem> list = [];
+    for (var item in json) {
+      list.add(UserItem.fromJson(item));
+    }
+    return list;
   }
 }

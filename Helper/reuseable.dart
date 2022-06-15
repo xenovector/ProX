@@ -1,8 +1,5 @@
-import 'package:flutter/material.dart';
-import 'package:get/get.dart';
 import 'package:lottie/lottie.dart';
 import '../export.dart';
-import 'package:flutter_dialogs/flutter_dialogs.dart';
 
 Widget loader(bool isLoading, String label, {Color color = Colors.white}) {
   return (isLoading
@@ -45,45 +42,41 @@ Widget line({double height = 1, Color color = Colors.black26, double vertical = 
 
 Widget themeButton(String text, onTapCallBack,
     {EdgeInsets padding = const EdgeInsets.symmetric(vertical: 12, horizontal: 8), double fontSize = 19}) {
-  return Container(
-    child: ElevatedButton(
-      style: ElevatedButton.styleFrom(
-          primary: ThemeColor.main, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(25.0))),
-      child: Padding(
-        padding: padding,
-        child: Text(text, style: TextStyle(color: Colors.white, fontSize: fontSize, fontWeight: FontWeight.w600)),
-      ),
-      onPressed: onTapCallBack,
+  return ElevatedButton(
+    style: ElevatedButton.styleFrom(
+        primary: S.color.main, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(25.0))),
+    child: Padding(
+      padding: padding,
+      child: Text(text, style: TextStyle(color: Colors.white, fontSize: fontSize, fontWeight: FontWeight.w600)),
     ),
+    onPressed: onTapCallBack,
   );
 }
 
 Widget customThemeButton(String text, onTapCallBack,
     {EdgeInsets padding = const EdgeInsets.symmetric(vertical: 12, horizontal: 6),
-    Color buttonColor = ThemeColor.main,
+    Color? buttonColor,
     double fontSize = 16.5,
     Color fontColor = Colors.white,
-    Color shadowColor = ThemeColor.main}) {
-  return Container(
-    child: ElevatedButton(
-      style: ElevatedButton.styleFrom(
-          elevation: 5,
-          primary: buttonColor,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20.0)),
-          shadowColor: shadowColor),
-      child: Padding(
-        padding: padding,
-        child: Text(text, style: TextStyle(color: fontColor, fontSize: fontSize, fontWeight: FontWeight.w600)),
-      ),
-      onPressed: onTapCallBack,
+    Color? shadowColor}) {
+  return ElevatedButton(
+    style: ElevatedButton.styleFrom(
+        elevation: 5,
+        primary: buttonColor ?? S.color.main,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20.0)),
+        shadowColor: shadowColor ?? S.color.main),
+    child: Padding(
+      padding: padding,
+      child: Text(text, style: TextStyle(color: fontColor, fontSize: fontSize, fontWeight: FontWeight.w600)),
     ),
+    onPressed: onTapCallBack,
   );
 }
 
 Widget infinityButton(String text, onTapCallBack,
     {double height = 40,
     double radius = 20,
-    Color buttonColor = ThemeColor.main,
+    Color? buttonColor,
     Color textColor = Colors.black,
     double marginLeft = 0,
     double marginTop = 0,
@@ -97,7 +90,7 @@ Widget infinityButton(String text, onTapCallBack,
       width: double.infinity,
       margin: EdgeInsets.fromLTRB(marginLeft, marginTop, marginRight, marginBottom),
       decoration: BoxDecoration(
-        color: buttonColor,
+        color: buttonColor ?? S.color.main,
         borderRadius: BorderRadius.circular(radius),
         boxShadow: needShadow
             ? [
@@ -122,23 +115,26 @@ Widget infinityButton(String text, onTapCallBack,
 Widget customAppBar(String title,
     {bool withBackBtn = false,
     VoidCallback? callback,
+    Widget? customBackButton,
     bool alignLeft = true,
     Color fontColor = Colors.black,
     Color backBtnColor = Colors.black,
     double? withProgress,
-    Color progressColor = ThemeColor.main,
-    Widget? optionWidget}) {
+    Color? progressColor,
+    Widget? optionWidget,
+    double titleLeft = 10,
+    String? fontFamily}) {
   Widget backBtn = withBackBtn
       ? Row(
           children: [
-            SizedBox(width: 10),
             InkWell(
-              child: Container(
-                  padding: EdgeInsets.only(left: 15, right: 10),
-                  child: Icon(
-                    Icons.arrow_back_ios,
-                    color: backBtnColor,
-                  )),
+              child: customBackButton ??
+                  Container(
+                      padding: EdgeInsets.only(left: 25, right: 10),
+                      child: Icon(
+                        Icons.arrow_back_ios,
+                        color: backBtnColor,
+                      )),
               onTap: () {
                 if (callback == null) {
                   Get.back();
@@ -156,11 +152,13 @@ Widget customAppBar(String title,
         child: Row(
           children: [
             alignLeft ? backBtn : Expanded(child: backBtn),
-            if (alignLeft) SizedBox(width: 10),
+            if (alignLeft) SizedBox(width: titleLeft),
             Text(title,
                 style: TextStyle(
-                    fontSize: alignLeft ? 24 : 20,
-                    fontWeight: alignLeft ? FontWeight.w600 : FontWeight.bold,
+                    fontFamily: fontFamily,
+                    letterSpacing: 2,
+                    fontSize: alignLeft ? 24 : 24,
+                    fontWeight: alignLeft ? FontWeight.w600 : FontWeight.w600,
                     color: fontColor)),
             Expanded(child: Center()),
             if (optionWidget != null) optionWidget
@@ -175,7 +173,7 @@ Widget customAppBar(String title,
                     duration: Duration(milliseconds: 300),
                     height: 2,
                     width: Get.width * withProgress,
-                    color: progressColor)
+                    color: progressColor ?? S.color.main)
               ],
             )
     ],
@@ -287,21 +285,53 @@ Future<void> showFailedLottie(String text) async {
 void showLottieDialog(String lottieURL, String text) {
   Get.dialog(
     Material(
-      color: Colors.white,
+      color: Colors.transparent,
       child: Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Lottie.asset(lottieURL, height: 250, repeat: false),
-            Text(text,
-                textAlign: TextAlign.center,
-                style: TextStyle(color: ThemeColor.main, fontSize: 24, fontWeight: FontWeight.w500))
-          ],
+        child: Container(
+          width: Get.width * 0.75,
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Lottie.asset(lottieURL, height: 250, repeat: true),
+              spacedRow(
+                child: Text(text,
+                    textAlign: TextAlign.center,
+                    style: TextStyle(color: S.color.main, fontSize: 18, fontWeight: FontWeight.w500)),
+              ),
+              /*SizedBox(height: 24),
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                    primary: Colors.black,
+                    shadowColor: Colors.white,
+                    elevation: 8,
+                    shape: RoundedRectangleBorder(
+                        //side: BorderSide(color: Colors.grey.shade200, width: 0.2),
+                        borderRadius: BorderRadius.circular(12.0))),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                        padding: EdgeInsets.symmetric(vertical: 12, horizontal: 4),
+                        child: Text('OK',
+                            style: TextStyle(color: Colors.white, fontSize: 14))),
+                  ],
+                ),
+                onPressed: () {
+                  Get.back();
+                },
+              ),*/
+              SizedBox(height: 24),
+            ],
+          ),
         ),
       ),
     ),
     useSafeArea: false,
-    barrierDismissible: false,
+    barrierDismissible: true,
   );
 }
 
@@ -339,12 +369,12 @@ Widget dialogWidget(String hint, TextEditingController controller,
             onTap: onTap,
             decoration: InputDecoration(
                 hintText: hint,
-                hintStyle: TextStyle(fontSize: 16, color: ThemeColor.disable),
+                hintStyle: TextStyle(fontSize: 16, color: S.color.disable),
                 border: InputBorder.none,
                 contentPadding: EdgeInsets.fromLTRB(20, 15, 0, 15)),
           ),
         ),
-        InkWell(child: Icon(Icons.arrow_drop_down, color: ThemeColor.main, size: 40), onTap: onTap),
+        InkWell(child: Icon(Icons.arrow_drop_down, color: S.color.main, size: 40), onTap: onTap),
         SizedBox(width: 5)
       ],
     ),
@@ -353,13 +383,14 @@ Widget dialogWidget(String hint, TextEditingController controller,
 
 Widget textWidget(String hint, TextEditingController controller,
     {TextInputType inputType = TextInputType.text,
-      bool obscureText = false,
-      double marginTop = 20,
-      bool enabled = true,
-      double opacity = 1,
-      Color fontColor = Colors.black,
-      Color fontColorDisable = ThemeColor.disable,
-      void Function(String)? onChanged}) {
+    bool obscureText = false,
+    double marginTop = 20,
+    bool enabled = true,
+    double opacity = 1,
+    Color fontColor = Colors.black,
+    double fontSize = 15,
+    Color? fontColorDisable,
+    void Function(String)? onChanged}) {
   return Container(
     width: double.infinity,
     margin: EdgeInsets.only(top: marginTop, left: marginTop, right: marginTop),
@@ -380,12 +411,50 @@ Widget textWidget(String hint, TextEditingController controller,
       enabled: enabled,
       obscureText: obscureText,
       controller: controller,
-      style: TextStyle(fontSize: 15, color: enabled ? fontColor : fontColorDisable),
+      style: TextStyle(fontSize: fontSize, color: enabled ? fontColor : fontColorDisable ?? S.color.disable),
       keyboardType: inputType,
       onChanged: onChanged,
       decoration: InputDecoration(
           hintText: hint,
-          hintStyle: TextStyle(fontSize: 15, color: fontColorDisable),
+          hintStyle: TextStyle(fontSize: fontSize, color: fontColorDisable ?? S.color.disable),
+          border: InputBorder.none,
+          contentPadding: EdgeInsets.symmetric(horizontal: 20)),
+    ),
+  );
+}
+
+Widget searchWidget(String hint, TextEditingController controller, void Function() onSearch,
+    {TextInputType inputType = TextInputType.text,
+    bool obscureText = false,
+    double marginTop = 20,
+    bool enabled = true,
+    double opacity = 1,
+    Color fontColor = Colors.black,
+    double fontSize = 15,
+    Color? fontColorDisable,
+    void Function(String)? onChanged,
+    Function()? onTap}) {
+  return Container(
+    width: double.infinity,
+    margin: EdgeInsets.only(top: marginTop, left: marginTop, right: marginTop),
+    alignment: Alignment.center,
+    decoration: BoxDecoration(
+      color: Colors.white.withOpacity(opacity),
+      borderRadius: BorderRadius.circular(10),
+    ),
+    child: TextField(
+      enabled: enabled,
+      obscureText: obscureText,
+      controller: controller,
+      style: TextStyle(fontSize: fontSize, color: enabled ? fontColor : fontColorDisable ?? S.color.disable),
+      keyboardType: inputType,
+      textInputAction: TextInputAction.search,
+      onChanged: onChanged,
+      onEditingComplete: onSearch,
+      onTap: onTap,
+      decoration: InputDecoration(
+          hintText: hint,
+          hintStyle: TextStyle(fontSize: fontSize, color: fontColorDisable ?? S.color.disable),
           border: InputBorder.none,
           contentPadding: EdgeInsets.symmetric(horizontal: 20)),
     ),
@@ -399,7 +468,7 @@ Widget passwordWidget(String hint, TextEditingController controller, bool obscur
     bool enabled = true,
     double opacity = 1,
     Color fontColor = Colors.black,
-    Color fontColorDisable = ThemeColor.disable,
+    Color? fontColorDisable,
     void Function(String)? onChanged,
     void Function(String)? onSubmitted,
     Function()? visibleCallBack}) {
@@ -424,15 +493,16 @@ Widget passwordWidget(String hint, TextEditingController controller, bool obscur
         child: TextField(
           enabled: enabled,
           obscureText: obscureText,
+          obscuringCharacter: '0',
           controller: controller,
           focusNode: focusNode,
-          style: TextStyle(fontSize: 15, color: enabled ? fontColor : fontColorDisable),
+          style: TextStyle(fontSize: 15, color: enabled ? fontColor : fontColorDisable ?? S.color.disable),
           keyboardType: inputType,
           onChanged: onChanged,
           onSubmitted: onSubmitted,
           decoration: InputDecoration(
               hintText: hint,
-              hintStyle: TextStyle(fontSize: 15, color: fontColorDisable),
+              hintStyle: TextStyle(fontSize: 15, color: fontColorDisable ?? S.color.disable),
               border: InputBorder.none,
               contentPadding: EdgeInsets.symmetric(horizontal: 20)),
         ),
@@ -551,38 +621,9 @@ Widget successTickWidget() {
         height: 60,
         width: 60,
         padding: EdgeInsets.all(10),
-        decoration: BoxDecoration(color: ThemeColor.tickGreen, borderRadius: BorderRadius.circular(30)),
+        decoration: BoxDecoration(color: S.color.tickGreen, borderRadius: BorderRadius.circular(30)),
         child: Image.asset('lib/ProX/Assets/tick.png')),
   );
 }
 
-Future<bool> showNativeDialog(String title,
-    {String? message,
-    String actionText = 'OK',
-    bool needCancel = false,
-    String cancelText = 'Cancel',
-    Function()? onDone,
-    bool barrierDismissible = false}) async {
-  return await showPlatformDialog(
-    context: Get.context!,
-    androidBarrierDismissible: barrierDismissible,
-    builder: (_) => BasicDialogAlert(
-      title: Text(title),
-      content: message == null ? null : Text(message),
-      actions: <Widget>[
-        BasicDialogAction(
-          title: Text(actionText, style: TextStyle(fontSize: 15)),
-          onPressed: () {
-            if (onDone != null) onDone();
-            Get.back(result: true);
-          },
-        ),
-        if (needCancel)
-          BasicDialogAction(
-            title: Text(cancelText, style: TextStyle(fontSize: 15)),
-            onPressed: () => Get.back(result: false),
-          ),
-      ],
-    ),
-  );
-}
+

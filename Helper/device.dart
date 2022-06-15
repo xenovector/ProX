@@ -1,12 +1,12 @@
 import 'dart:async';
 import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import '../Core/pro_x.dart';
 
 class DevicePreferences {
 
+  static var appName = '';
   static var packageName = '';
   static var version = '';
   static var deviceId = '';
@@ -17,6 +17,7 @@ class DevicePreferences {
 
   static Future init() async {
     PackageInfo packageInfo = await PackageInfo.fromPlatform();
+    appName = packageInfo.appName;
     packageName = packageInfo.packageName;
     version = packageInfo.version;
     DeviceInfoPlugin deviceInfo = DeviceInfoPlugin();
@@ -38,6 +39,7 @@ class DevicePreferences {
     }
 
     print(""" ═══════════════════════════════════════════════════════════════════════════════════
+    appName: $appName
     packageName: $packageName
     version: $version
     deviceID: $deviceId

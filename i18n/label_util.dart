@@ -37,8 +37,8 @@ class LabelUtil {
       String contents = await file.readAsString();
       final Map<String, dynamic> parsed = jsonDecode(contents);
       final String name = parsed[AppLanguage.Label_Language_Name] ?? '';
-      final String imgUrl = parsed[AppLanguage.Label_Locale_Image] ?? '';
-      final String version = parsed[AppLanguage.Label_Version_JsonKey] ?? '1.0.0';
+      final String imgUrl = parsed.containsKey(AppLanguage.Label_Locale_Image) ? parsed[AppLanguage.Label_Locale_Image] ?? '' : '';
+      final String version = (parsed.containsKey(AppLanguage.Label_Version_Long_JsonKey) ? parsed[AppLanguage.Label_Version_Long_JsonKey] : parsed[AppLanguage.Label_Version_Short_JsonKey]) ?? '1.0.0';
       final Map<String, dynamic> map = parsed[AppLanguage.Label_MapData_JsonKey] ?? {};
       return LabelInfo(
           locale: langCode,

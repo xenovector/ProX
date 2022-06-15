@@ -1,39 +1,37 @@
+// API config
 // You can set your api network setting and custom error code here.
-import 'package:flutter/foundation.dart';
+
+class ApiSetting {
+  // Deadly fixed endpoint.
+  static const deadPoint = '';
+
+// Endpoint based on environment.
+  static String endPoint = '';
+
+// API version, e.g. 'v1'.
+  static const defaultApiVersion = '/v1';
 
 //General Error Code
-const RequestTimeout = 408;
-const Maintenance = 503;
-const ServerError = 500;
-const InternalError = 12004;
+  static const RequestTimeout = 408;
+  static const Maintenance = 503;
+  static const ServerError = 500;
+  static const InternalError = 12004;
 
 // ----- ----- ----- -----
 
-const SessionExpired =  995; // end with
-const ForceVerifyPhone = 997; // end with
-const ForceLogout = 996; // end with
-const LabelUpdate = 998; // end with
-const ForceUpdate = 999; //end with
+  static const SessionExpired = 995; // end with
+  static const ForceVerifyPhone = 997; // end with
+  static const ForceLogout = 996; // end with
+  static const LabelUpdate = 998; // end with
+  static const ForceUpdate = 999; //end with
 
-
-// To get the endpoint for staging and production environment
-const deadPoint = '';
-
-const ConnectErr = 'You may experiencing network connection issue';
-
-// API config
-String get endPoint {
-  if (kReleaseMode) {
-    // Live endpoint
-    return 'https://put-your-live-endpoint-here.com/api';
-  } else {
-    // Stag endpoint
-    return 'https://put-your-stag-endpoint-here.com/api';
-  }
+  /*String get endPoint {
+    if (kReleaseMode) {
+      // Live endpoint
+      return 'https://put-your-live-endpoint-here.com/api';
+    } else {
+      // Stag endpoint
+      return 'https://put-your-stag-endpoint-here.com/api';
+    }
+  }*/
 }
-const apiVersion = '/v1';
-const encrypt_response = "1";
-const acceptHeader = "application/json";
-const contentHeader = 'application/x-www-form-urlencoded';
-const multipartHeader = 'multipart/form-data';
-const versionType = 'app';

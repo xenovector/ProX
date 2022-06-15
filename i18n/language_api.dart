@@ -1,6 +1,8 @@
+import 'package:prox/ProX/i18n/label_model.dart';
 import 'app_language.dart';
-import '../Api/http_client.dart';
+import '../Api/dio_client.dart';
 import '../Api/response.dart';
+import 'language_key.dart';
 
 /* Sample json that should be return by serverside.
 {
@@ -29,7 +31,7 @@ import '../Api/response.dart';
                 "GENERAL_SUCCESS": "Success",
                 "GENERAL_FAILED": "Failed",
                 "GENERAL_ERROR": "Error",
-                "GENERAL_ERROR_CODE_COLON_MSG": "Error %d: %s ",
+                "GENERAL_ERROR_CODE_COLON_MSG": "Error %d: %s",
                 "GENERAL_ERROR_CODE_BR_MSG": "Error %d\\n%s",
                 "GENERAL_INVALID_PASSWORD_FORMAT": "Invalid Password Format.",
                 "GENERAL_PASSWORD_NOT_MATCH": "Password Not Match.",
@@ -64,15 +66,19 @@ import '../Api/response.dart';
 
 extension LanguageApi on AppLanguage {
   // Fetch All Supported Language Json.
-  Future<ResponseData<T>> getAllLabel<T extends RData>(OnFail onFail) async {
-    final urlPath = '/languages';
+  Future<ResponseData<LabelSupport>> getAllLabel(OnFail onFail) async {
+    const urlPath = '/languages';
     var request = RequestTask.set(urlPath, headerType: HeaderType.standard);
     try {
-      ResponseData<T> response = await requestFilter<T>(request);
+      var response = await requestFilter<LabelSupport>(LabelSupport(supportedLocale: [], labelInfoList: []), request);
       return response;
     } catch (e) {
-      return ResponseData<T>(error: onObjectException(e, onFail));
+      return ResponseData<LabelSupport>(error: onObjectException(e, onFail));
     }
+  }
+
+  ResponseData<LabelSupport> getDefaultLabel() {
+    return ResponseData.fromJson(LabelSupport(supportedLocale: [], labelInfoList: []), L.defaultKeyValue);
   }
 
   // Fetch Single Language Json base on given Locale.

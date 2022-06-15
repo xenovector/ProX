@@ -1,9 +1,10 @@
+// ignore_for_file: constant_identifier_names
+
 import 'dart:ui';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'languages.dart';
-import '../Api/http_client.dart';
-import '../Api/response.dart';
+import '../Api/dio_client.dart';
 import '../Core/pro_x_storage.dart';
 
 /*
@@ -59,13 +60,14 @@ class AppLanguage {
   static const String Label_Support_JsonKey = 'supported_locale';
   static const String Label_Language_Name = 'name';
   static const String Label_Locale_Image = 'image_url';
-  static const String Label_Version_JsonKey = 'label_version';
+  static const String Label_Version_Long_JsonKey = 'label_version';
+  static const String Label_Version_Short_JsonKey = 'version';
   static const String Label_MapData_JsonKey = 'labels';
 
   // key for preferences.
   static const String KEY_LANGUAGE_CODE = 'language_code';
   static const String KEY_SUPPORTED_CODES = 'supported_codes';
-  static const String KEY_DIDSET_LOCALE = 'didset_locale';
+  static const String KEY_USER_PREFER_LOCALE_CODE = 'user_prefer_locale_code';
 
   // default locale.
   static const Locale defaultLocale = Locale('en', 'US');
@@ -83,20 +85,26 @@ class AppLanguage {
   static ReadWriteValue<String> langCode = ReadWriteValue<String>(KEY_LANGUAGE_CODE, '', ProXStorage.box);
   static ReadWriteValue<List<String>> suppCodes =
       ReadWriteValue<List<String>>(KEY_SUPPORTED_CODES, [], ProXStorage.box);
-  static ReadWriteValue<bool> didSetLocale = ReadWriteValue<bool>(KEY_DIDSET_LOCALE, false, ProXStorage.box);
+  static ReadWriteValue<String> userPreferLocaleCode =
+      ReadWriteValue<String>(KEY_USER_PREFER_LOCALE_CODE, '', ProXStorage.box);
 
   // Initializer.
-  static Future<RequestException?> init() async {
+  static Future<RequestException?> init({bool isDefault = false}) async {
     RequestException? error;
     bool noInternetion = !(await checkInternetConnection());
     if (noInternetion) {
       _supportLocale = suppCodes.val != [] ? suppCodes.val : ['en'];
       _appLocale = langCode.val != '' ? Locale(langCode.val) : defaultLocale;
     } else {
-      var labelHandleError = await _loadAllTranslations<List<String>>();
+      var labelHandleError = await _loadAllTranslations<List<String>>(isDefault);
       if (labelHandleError.error == null) {
         _supportLocale = labelHandleError.data;
-        _appLocale = supportLocale!.contains(Get.deviceLocale?.languageCode) ? Get.deviceLocale : defaultLocale;
+        if (userPreferLocaleCode.val == '') {
+          _appLocale = supportLocale!.contains(Get.deviceLocale?.languageCode) ? Get.deviceLocale : defaultLocale;
+        } else {
+          _appLocale =
+              supportLocale!.contains(userPreferLocaleCode.val) ? Locale(userPreferLocaleCode.val) : defaultLocale;
+        }
         langCode.val = _appLocale!.languageCode;
         suppCodes.val = supportLocale!;
       } else {
@@ -116,7 +124,7 @@ class AppLanguage {
     LabelInfo? labelInfo = _lf ?? await LabelUtil.shared.getLabelWithLocale(localeCode);
     _appLocale = Locale(localeCode);
     langCode.val = localeCode;
-    didSetLocale.val = true;
+    userPreferLocaleCode.val = localeCode;
     AppLanguage.key[localeCode] = labelInfo!.map;
     Get.updateLocale(appLocale!);
     return;
@@ -127,8 +135,10 @@ class AppLanguage {
       return LabelUtil.shared.getLabelWithLocale(langCode);
     }).toList());
     List<Map<String, Map<String, String>>> mapList = labelInfoList.map((e) => {e!.locale: e.map}).toList();
-    if (mapList.length > 0) {
-      AppLanguage.key.addAll(mapList[0]);
+    if (mapList.isNotEmpty) {
+      for (var element in mapList) {
+        AppLanguage.key.addAll(element);
+      }
     }
     return;
   }
@@ -139,16 +149,20 @@ class AppLanguage {
     }).toList());
   }
 
-  static Future<LabelHandleError<T>> _loadAllTranslations<T>() async {
-    ResponseData<LabelSupport> res = await shared.getAllLabel<LabelSupport>((code, msg, {tryAgain}) async {
-      print('Error:\ncode: $code,\nmsg: $msg');
-      return true;
-    });
+  static Future<LabelHandleError<T>> _loadAllTranslations<T>(bool isDefault) async {
+    var res = shared.getDefaultLabel();
+    if (!isDefault) {
+      res = await shared.getAllLabel((code, msg, {tryAgain}) async {
+        print('Error:\ncode: $code,\nmsg: $msg');
+        return true;
+      });
+    }
     LabelSupport? labelSupport = res.data;
     bool haveResult = labelSupport != null;
-    if (haveResult)
+    if (haveResult) {
       await Future.forEach(
           labelSupport.labelInfoList, (LabelInfo labelInfo) async => await LabelUtil.shared.writeLabelInto(labelInfo));
+    }
     return LabelHandleError<T>((haveResult ? labelSupport.supportedLocale : []) as T, haveResult ? null : res.error);
   }
 

@@ -5,9 +5,10 @@ import 'package:flutter_fgbg/flutter_fgbg.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:huawei_push/huawei_push.dart' as hms;
+import '../Utilities/utils.dart';
 import '../export.dart';
 
-class NotificationData extends RData {
+class NotificationData {
   final String title;
   final String message;
   final String id;
@@ -47,7 +48,7 @@ class NC {
       hms.Push.onMessageReceivedStream.listen(onHMSMessageReceived, onError: (Object error) {
         // Called when an error occurs while receiving the data message
       });
-      await hms.Push.getToken('');
+      hms.Push.getToken('');
 
       hms.Push.onNotificationOpenedApp.listen((event) async {
         printSuperLongText('onTap event: ${event.toString()}');
@@ -60,7 +61,7 @@ class NC {
           Get.to(QuarantineInfoPage(), binding: QuarantineInfoBinding());
         }*/
         } else {
-          showFlash(data['title'], data['body'],
+          U.show.flash(data['title'], data['body'],
               data: NotificationData(data['title'], data['body'], id, payload: data));
         }
       });
@@ -110,7 +111,7 @@ void onGMSMessageReceived(RemoteMessage message) async {
         Get.to(QuarantineInfoPage(), binding: QuarantineInfoBinding());
       }*/
   } else {
-    showFlash(title, msg, data: NotificationData(title, msg, id, payload: message.data));
+    U.show.flash(title, msg, data: NotificationData(title, msg, id, payload: message.data));
   }
 }
 
@@ -156,7 +157,7 @@ void onHMSMessageReceived(hms.RemoteMessage message) async {
         Get.to(QuarantineInfoPage(), binding: QuarantineInfoBinding());
       }*/
     } else {
-      showFlash(data['title'], data['body'],
+      U.show.flash(data['title'], data['body'],
           data: NotificationData(data['title'], data['body'], id.toString(), payload: data));
     }
   } else {

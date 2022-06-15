@@ -1,25 +1,25 @@
 import 'package:get_storage/get_storage.dart';
 
-final accessToken = ReadWriteValue(ProXKey.ACCESS_TOKEN, '', ProXStorage.box);
-final userID = ReadWriteValue(ProXKey.USER_ID, '', ProXStorage.box);
-final isFirstTime = ReadWriteValue(ProXKey.IS_FIRST_TIME, true, ProXStorage.box);
-final isNotificationEnable = ReadWriteValue(ProXKey.IS_NOTIFICATION_ENABLED, true, ProXStorage.box);
-final dbVersion = ReadWriteValue(ProXKey.DB_VERSION, 0, ProXStorage.box);
-
 class ProXKey {
-  static const ACCESS_TOKEN = 'ACCESS_TOKEN';
-  static const USER_ID = 'USER_ID';
-  static const IS_FIRST_TIME = 'IS_FIRST_TIME';
-  static const IS_NOTIFICATION_ENABLED = 'IS_NOTIFICATION_ENABLED';
-  static const DB_VERSION = 'DB_VERSION';
+  static const accessToken = 'ACCESS_TOKEN';
+  static const userID = 'USER_ID';
+  static const isFirstTime = 'IS_FIRST_TIME';
+  static const isNotificationEnabled = 'IS_NOTIFICATION_ENABLED';
+  static const dbVersion = 'DB_VERSION';
 }
 
+final accessToken = ReadWriteValue(ProXKey.accessToken, '', ProXStorage.box);
+final userID = ReadWriteValue(ProXKey.userID, '', ProXStorage.box);
+final isFirstTime = ReadWriteValue(ProXKey.isFirstTime, false, ProXStorage.box);
+final isNotificationEnable = ReadWriteValue(ProXKey.isNotificationEnabled, true, ProXStorage.box);
+final dbVersion = ReadWriteValue(ProXKey.dbVersion, 0, ProXStorage.box);
+
 class ProXStorage {
-  static const ProXStorage_KEY = 'ProXStorage';
-  static final box = () => GetStorage(ProXStorage_KEY);
+  static const proXStorageKey = 'ProXStorage';
+  static GetStorage box() => GetStorage(proXStorageKey);
 
   static void init({Function()? taskAfterInit}) async {
-    await GetStorage.init(ProXStorage_KEY);
+    await GetStorage.init(proXStorageKey);
     if (taskAfterInit != null) taskAfterInit();
   }
 }

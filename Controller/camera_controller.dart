@@ -58,41 +58,39 @@ Future<File?> showImagePicker(BuildContext context, {bool customCamera = true, b
     index = await showModalBottomSheet(
         context: context,
         builder: (BuildContext context) {
-          return Container(
-            child: Wrap(
-              children: <Widget>[
-                Container(
-                  padding: EdgeInsets.only(left: 20, top: 8, bottom: 5),
-                  child: Text('\nWhere would you like your image picked?\n', style: TextStyle(fontSize: 15)),
-                ),
-                line(horizontal: 10),
+          return Wrap(
+            children: <Widget>[
+              Container(
+                padding: EdgeInsets.only(left: 20, top: 8, bottom: 5),
+                child: Text('\nWhere would you like your image picked?\n', style: TextStyle(fontSize: 15)),
+              ),
+              line(horizontal: 10),
+              ListTile(
+                  leading: Icon(Icons.camera_alt),
+                  title: Text('Camera'),
+                  onTap: () {
+                    Get.back(result: 1);
+                  }),
+              ListTile(
+                  leading: Icon(Icons.photo),
+                  title: Text('Photo Gallery'),
+                  onTap: () {
+                    Get.back(result: 2);
+                  }),
+              if (includedFilePicker)
                 ListTile(
-                    leading: Icon(Icons.camera_alt),
-                    title: Text('Camera'),
+                    leading: Icon(Icons.insert_drive_file),
+                    title: Text('File Picker'),
                     onTap: () {
-                      Get.back(result: 1);
+                      Get.back(result: 3);
                     }),
-                ListTile(
-                    leading: Icon(Icons.photo),
-                    title: Text('Photo Gallery'),
-                    onTap: () {
-                      Get.back(result: 2);
-                    }),
-                if (includedFilePicker)
-                  ListTile(
-                      leading: Icon(Icons.insert_drive_file),
-                      title: Text('File Picker'),
-                      onTap: () {
-                        Get.back(result: 3);
-                      }),
-                line(horizontal: 10),
-                ListTile(
-                  leading: Icon(Icons.cancel),
-                  title: Text('Cancel'),
-                  onTap: Get.back,
-                ),
-              ],
-            ),
+              line(horizontal: 10),
+              ListTile(
+                leading: Icon(Icons.cancel),
+                title: Text('Cancel'),
+                onTap: Get.back,
+              ),
+            ],
           );
         });
   }

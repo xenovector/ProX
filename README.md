@@ -270,10 +270,11 @@ This project template using not only getx but many other plugin as well, below w
   intl:
   package_info_plus:
   device_info_plus:
-  sprintf:
-  lottie:
   connectivity_plus:
   dio:
+  sprintf:
+  lottie:
+  version:
   event_bus:
   path_provider:
   url_launcher:
@@ -284,26 +285,19 @@ This project template using not only getx but many other plugin as well, below w
   flutter_keyboard_visibility:
   extended_image:
   audioplayers:
-  version:
   flutter_vibrate:
   auto_size_text:
   permission_handler:
   flutter_dialogs:
   share_plus:
+  # carousel_slider:
+  # uni_links:
+  flutter_native_splash:
 
   # --- listing use ---
   pull_to_refresh:
   flutter_slidable:
   # --- ------- --- ---
-
-  # --- firebase & notification use ---
-  # onesignal_flutter:
-  firebase_core:
-  firebase_messaging:
-  firebase_crashlytics:
-  huawei_push:
-  flutter_fgbg:
-  # --- ------------ --- ---
 
   # --- camera use ---
   camera:
@@ -324,7 +318,23 @@ This project template using not only getx but many other plugin as well, below w
   huawei_map:
   # --- -------- --- ---
 
+  # onesignal_flutter:
+  firebase_core:
+  firebase_messaging:
+  firebase_crashlytics:
+  huawei_push:
+  flutter_fgbg:
+  # path: lib/ProX/Download/hms/huawei_map
+  # --- ------------ --- ---
+
+  # --- Game Development use ---
+  flame:
+  flame_splash_screen:
+  # --- ---- ----------- --- ---
+
   # list project base plugin here:
+
+
 
   # modal_bottom_sheet:
   # smooth_page_indicator:
@@ -342,6 +352,12 @@ This project template using not only getx but many other plugin as well, below w
   # flutter_xlider:
   # flutter_html:
   # fl_chart:
+
+# Defined your native splash screen if you have one.
+# flutter_native_splash:
+    # background_image: "assets/splash_bg.png"
+    # android_gravity: fill
+    # fullscreen: true
 ```
 ```yaml
 assets:
@@ -970,7 +986,7 @@ Make sure you uncomment `platform :ios` at Podfile and change to version to the 
 
 This project is licensed under the MIT License.
 
-Copyright (c) 2021 Dexter Gold
+Copyright (c) 2022 Dexter Gold
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
