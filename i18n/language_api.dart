@@ -1,4 +1,4 @@
-import 'package:prox/ProX/i18n/label_model.dart';
+import 'label_model.dart';
 import 'app_language.dart';
 import '../Api/dio_client.dart';
 import '../Api/response.dart';
@@ -68,7 +68,7 @@ extension LanguageApi on AppLanguage {
   // Fetch All Supported Language Json.
   Future<ResponseData<LabelSupport>> getAllLabel(OnFail onFail) async {
     const urlPath = '/languages';
-    var request = RequestTask.set(urlPath, headerType: HeaderType.standard);
+    var request = RequestTask.set(urlPath, headerType: HeaderType.authorized);
     try {
       var response = await requestFilter<LabelSupport>(LabelSupport(supportedLocale: [], labelInfoList: []), request);
       return response;

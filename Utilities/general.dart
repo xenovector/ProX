@@ -1,16 +1,26 @@
 import 'dart:io';
+import 'package:flutter/services.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
+import 'package:get/get.dart';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter_vibrate/flutter_vibrate.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:url_launcher/url_launcher_string.dart';
-import '../export.dart';
+import '../Helper/device.dart';
+import '../Core/extension.dart';
 
 class UtilsGeneral {
-  bool get isiPhoneX => Platform.isIOS && Get.mediaQuery.viewPadding.top > 0;
 
   void dismissKeyboard(BuildContext context) {
     FocusScope.of(context).requestFocus(FocusNode());
+  }
+
+  void setSystemNavigationBarColor(Color color, {bool darkIcons = false}) {
+    if (DevicePreferences.androidSdkVersion >= 29) return;
+    SystemChrome.setSystemUIOverlayStyle(
+        SystemUiOverlayStyle(statusBarColor: Colors.transparent, systemNavigationBarColor: color,
+        systemNavigationBarIconBrightness: darkIcons ? Brightness.dark : Brightness.light));
   }
 
   Future<void> playSound(String name) async {
@@ -94,5 +104,37 @@ class UtilsGeneral {
     } else {
       launchUrlString('tel://${phone.replaceAll(' ', '').getEmptyOrNull ?? phone}');
     }
+  }
+
+  String numberToAlphabet(int number) {
+    var alphabetList = {
+      1: 'A',
+      2: 'B',
+      3: 'C',
+      4: 'D',
+      5: 'E',
+      6: 'F',
+      7: 'G',
+      8: 'H',
+      9: 'I',
+      10: 'J',
+      11: 'K',
+      12: 'L',
+      13: 'M',
+      14: 'N',
+      15: 'O',
+      16: 'P',
+      17: 'Q',
+      18: 'R',
+      19: 'S',
+      20: 'T',
+      21: 'U',
+      22: 'V',
+      23: 'W',
+      24: 'X',
+      25: 'Y',
+      26: 'Z',
+    };
+    return alphabetList[number] ?? 'Error';
   }
 }

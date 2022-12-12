@@ -3,6 +3,7 @@ class R {
   static final lottie = _Lottie();
   static final image = _Image();
   static final icons = _Icons();
+  static final prox = _ProXAssets();
 }
 
 // Lottie
@@ -21,4 +22,10 @@ class _Image {
 class _Icons {
   static const path = 'assets/img';
   final iconsX = '$path/iconsX.png';
+}
+
+class _ProXAssets {
+  static const path = 'lib/ProX/Assets';
+  final tick = '$path/tick.png';
+  final greenTick = '$path/green_tick.png';
 }

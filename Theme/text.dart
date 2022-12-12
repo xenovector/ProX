@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
-import 'style.dart';
+import '../Helper/hotkey.dart';
+import '../i18n/app_language.dart';
 
 class StyleText {
-  final f10Regular = TextStyle(
-    fontSize: 10,
-    color: S.color.main
-  );
+  final bigTitleStyle = TextStyle(
+      fontSize: 22,
+      fontWeight: FontWeight.bold,
+      color: S.color.themeTitleColor,
+      letterSpacing: AppLanguage.isChinese ? 1.5 : null,
+      height: 1.3);
 
-  final defaultButtonStyle = TextStyle(
-    fontSize: 16,
-    //fontWeight: FontWeight.w500
-  );
+  //
 }

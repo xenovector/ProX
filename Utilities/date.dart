@@ -46,6 +46,12 @@ class UtilsDate {
     return '$hour:$minutes $period';
   }
 
+  int getDaysIn({required int year, required int month}) {
+    DateTime thisMonth = DateTime(year, month);
+    DateTime nextMonth = month == 12 ? DateTime(year+1, 1) : DateTime(year, month+1);
+    return nextMonth.toUtc().difference(thisMonth).inDays;
+  }
+
   String getCurrentDate({bool withTime = false}) {
     String szDateTime = '';
     DateTime now = DateTime.now();
@@ -65,6 +71,11 @@ class UtilsDate {
   String getTimeZone() {
     DateTime now = DateTime.now();
     return now.timeZoneName;
+  }
+
+  String getFileNameByTime() {
+    DateTime now = DateTime.now();
+    return now.microsecondsSinceEpoch.toString();
   }
 
 }

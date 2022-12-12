@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:io';
-import 'dart:convert';
 import 'package:dio/dio.dart';
 import 'package:path/path.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
@@ -39,24 +38,33 @@ enum HttpMethod { get, post, put, patch, delete, multipart }
 /// * **authorized** = included everything in standard, but with authorized header, value of 'Bearer $YOUR_ACCESS_TOKEN'
 enum HeaderType { none, standard, authorized }
 
-const acceptHeader = "application/json";
-const contentHeader = 'application/x-www-form-urlencoded';
+class DioContentType {
+  static const x_www_form_url_encoded = 'application/x-www-form-urlencoded';
+  static const json = 'application/json';
+  static const multipart = 'multipart/form-data';
+}
+
+const acceptHeader = 'application/json';
+//const contentHeader = 'application/x-www-form-urlencoded';
+const contentHeader = 'application/json';
 const multipartHeader = 'multipart/form-data';
 
 // RequestTask Object
 class RequestTask {
   final String urlPath;
-  final Map<String, String>? parameter;
+  final Map<String, dynamic>? parameter;
   final Map<String, File>? filesField;
   final HeaderType headerType;
   final Map<String, String>? extraHeader;
   final HttpMethod requestMethod;
+  final String? contentType;
   final String apiVersion;
   final bool ignoreHtmlErrorHandling;
   final String? preAccessToken;
   final bool usingRawURL;
   final bool getRawData;
   final bool isRequestingEndpoint;
+  final bool showDebugResponse;
 
   const RequestTask(
       {required this.urlPath,
@@ -65,25 +73,29 @@ class RequestTask {
       required this.filesField,
       required this.extraHeader,
       required this.requestMethod,
+      required this.contentType,
       required this.apiVersion,
       required this.ignoreHtmlErrorHandling,
       required this.preAccessToken,
       required this.usingRawURL,
       required this.getRawData,
-      required this.isRequestingEndpoint});
+      required this.isRequestingEndpoint,
+      required this.showDebugResponse});
 
   factory RequestTask.set(String path,
-      {Map<String, String>? body,
+      {Map<String, dynamic>? body,
       HeaderType headerType = HeaderType.none,
       Map<String, String>? extraHeader,
       Map<String, File>? filesField,
       HttpMethod requestMethod = HttpMethod.post,
+      String? contentType,
       String apiVersion = ApiSetting.defaultApiVersion,
       bool ignoreHtmlErrorHandling = false,
       String? preAccessToken,
       bool usingRawURL = false,
       bool getRawData = false,
-      bool isRequestingEndpoint = false}) {
+      bool isRequestingEndpoint = false,
+      bool showDebugResponse = false}) {
     return RequestTask(
         urlPath: path,
         parameter: body,
@@ -91,12 +103,14 @@ class RequestTask {
         extraHeader: extraHeader,
         filesField: filesField,
         requestMethod: requestMethod,
+        contentType: contentType,
         apiVersion: apiVersion,
         ignoreHtmlErrorHandling: ignoreHtmlErrorHandling,
         preAccessToken: preAccessToken,
         usingRawURL: usingRawURL,
         getRawData: getRawData,
-        isRequestingEndpoint: isRequestingEndpoint);
+        isRequestingEndpoint: isRequestingEndpoint,
+        showDebugResponse: showDebugResponse);
   }
 }
 
@@ -138,7 +152,8 @@ Future<ResponseData<R>> requestFilter<R extends RData>(R item, RequestTask reque
   bool noInternetion = !(await checkInternetConnection());
 
   if (noInternetion) {
-    throw RequestException(ApiSetting.InternalError, 'No Internet Connection, Please check your network and try again.');
+    throw RequestException(
+        ApiSetting.InternalError, 'No Internet Connection, Please check your network and try again.');
   }
 
   var szUrl = request.usingRawURL
@@ -153,17 +168,20 @@ Future<ResponseData<R>> requestFilter<R extends RData>(R item, RequestTask reque
           ? {
               HttpHeaders.authorizationHeader: "Bearer ${request.preAccessToken ?? storage.accessToken.val}",
               HttpHeaders.acceptHeader: acceptHeader,
-              HttpHeaders.contentTypeHeader: request.requestMethod == HttpMethod.multipart ? multipartHeader : contentHeader,
-              'App-Version': DevicePreferences.version,
-              'Device': DevicePreferences.platform,
-              'locale': AppLanguage.appLocale?.languageCode.getEmptyOrNull ?? 'en',
+              HttpHeaders.contentTypeHeader: request.contentType ??
+                  (request.requestMethod == HttpMethod.multipart ? multipartHeader : contentHeader),
+              'Device-OS': DevicePreferences.platform,
+              'Device-ID': DevicePreferences.deviceId,
+              'App-Version': DevicePreferences.appVersion,
+              'App-Locale': AppLanguage.appLocale?.languageCode.getEmptyOrNull ?? 'en',
             }
           : {
               HttpHeaders.acceptHeader: acceptHeader,
-              HttpHeaders.contentTypeHeader: contentHeader,
-              'App-Version': DevicePreferences.version,
-              'Device': DevicePreferences.platform,
-              'locale': AppLanguage.appLocale?.languageCode.getEmptyOrNull ?? 'en',
+              HttpHeaders.contentTypeHeader: request.contentType ?? contentHeader,
+              'Device-OS': DevicePreferences.platform,
+              'Device-ID': DevicePreferences.deviceId,
+              'App-Version': DevicePreferences.appVersion,
+              'App-Locale': AppLanguage.appLocale?.languageCode.getEmptyOrNull ?? 'en',
             };
   if (request.extraHeader != null) {
     request.extraHeader!.forEach((key, value) {
@@ -175,6 +193,12 @@ Future<ResponseData<R>> requestFilter<R extends RData>(R item, RequestTask reque
     connectTimeout: 30000, // 30 seconds,
     headers: header,
   ));
+
+  // (dio.httpClientAdapter as DefaultHttpClientAdapter).onHttpClientCreate = (HttpClient client) {
+  //   client.badCertificateCallback = (X509Certificate cert, String host, int port) => true;
+  //   return client;
+  // };
+
   Response? response;
   print('----- Request Info');
   print('url: $szUrl');
@@ -196,12 +220,14 @@ Future<ResponseData<R>> requestFilter<R extends RData>(R item, RequestTask reque
       response = await dio.delete(szUrl).catchError(onErrorCatched);
       break;
     case HttpMethod.multipart:
-      Map<String, dynamic> multipartRequestBody = body ??= {};
-
+      Map<String, dynamic> multipartRequestBody = {};
+      if (body != null) {
+        body.forEach((key, value) => multipartRequestBody.addAll({key: value}));
+      }
       if (request.filesField != null) {
         request.filesField!.forEach((key, file) async {
           multipartRequestBody.addAll({
-            key: await MultipartFile.fromFile(file.path, filename: basename(file.path)),
+            key: MultipartFile.fromFileSync(file.path, filename: basename(file.path)),
           });
         });
       }
@@ -225,7 +251,7 @@ Future<ResponseData<R>> requestFilter<R extends RData>(R item, RequestTask reque
         szUrl,
         data: FormData.fromMap(multipartRequestBody),
         onSendProgress: (int sent, int total) {
-          print('$sent $total');
+          print('uploading file total size of: $sent/$total bytes');
         },
       ).catchError(onErrorCatched);
       break;
@@ -237,15 +263,16 @@ Future<ResponseData<R>> requestFilter<R extends RData>(R item, RequestTask reque
   if (response != null) {
     print('done request with statusCode: ${response.statusCode}');
     if (response.statusCode == 200) {
-
       // dio body check
-      print('response:\n${response.data}');
+      if (request.showDebugResponse) {
+        printSuperLongText('response:\n${response.data}');
+      }
 
-      var rawData = request.ignoreHtmlErrorHandling ? response.data : jsonDecode(response.data);
+      //var rawData = request.ignoreHtmlErrorHandling ? response.data : jsonDecode(response.data);
       if (request.getRawData) {
-        return ResponseData<R>(code: response.statusCode ?? 0, rawData: rawData);
+        return ResponseData<R>(code: response.statusCode ?? 0, rawData: response.data);
       } else {
-        var res = ResponseData<R>.fromJson(item, rawData);
+        var res = ResponseData<R>.fromJson(item, response.data);
         print('res.status: $res');
         if (res.status) {
           return res;
@@ -255,7 +282,7 @@ Future<ResponseData<R>> requestFilter<R extends RData>(R item, RequestTask reque
       }
     } else {
       // Handle onError
-      print('Error ${response.statusCode}, message: ${response.statusMessage}');
+      print('Error ${response.statusCode}, message: ${response.statusMessage}, data: ${response.data}');
       throw RequestException(response.statusCode ?? 0, response.statusMessage ?? '');
     }
   } else {

@@ -31,12 +31,17 @@ Widget loader(bool isLoading, String label, {Color color = Colors.white}) {
       : Center());
 }
 
-Widget line({double height = 1, Color color = Colors.black26, double vertical = 0, double horizontal = 0}) {
+Widget line(
+    {double height = 1,
+    Color color = Colors.black26,
+    double vertical = 0,
+    double horizontal = 0,
+    double borderRadius = 0}) {
   return Container(
     margin: EdgeInsets.symmetric(vertical: vertical, horizontal: horizontal),
     width: double.infinity,
     height: height,
-    color: color,
+    decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(borderRadius)),
   );
 }
 
@@ -116,8 +121,8 @@ Widget customAppBar(String title,
     {bool withBackBtn = false,
     VoidCallback? callback,
     Widget? customBackButton,
-    bool alignLeft = true,
-    Color fontColor = Colors.black,
+    bool alignLeft = false,
+    Color? fontColor,
     Color backBtnColor = Colors.black,
     double? withProgress,
     Color? progressColor,
@@ -130,7 +135,7 @@ Widget customAppBar(String title,
             InkWell(
               child: customBackButton ??
                   Container(
-                      padding: EdgeInsets.only(left: 25, right: 10),
+                      padding: EdgeInsets.only(left: 20, right: 10),
                       child: Icon(
                         Icons.arrow_back_ios,
                         color: backBtnColor,
@@ -156,10 +161,10 @@ Widget customAppBar(String title,
             Text(title,
                 style: TextStyle(
                     fontFamily: fontFamily,
-                    letterSpacing: 2,
-                    fontSize: alignLeft ? 24 : 24,
+                    letterSpacing: AppLanguage.isChinese ? 2 : null,
+                    fontSize: 24,
                     fontWeight: alignLeft ? FontWeight.w600 : FontWeight.w600,
-                    color: fontColor)),
+                    color: fontColor ?? S.color.main)),
             Expanded(child: Center()),
             if (optionWidget != null) optionWidget
           ],
@@ -177,6 +182,75 @@ Widget customAppBar(String title,
               ],
             )
     ],
+  );
+}
+
+Widget customCenterAppBarWithWidget(String title,
+    {bool withBackBtn = false,
+    VoidCallback? callback,
+    Widget? customBackButton,
+    bool alignLeft = false,
+    Color? fontColor,
+    Color backBtnColor = Colors.black,
+    double? withProgress,
+    Color? progressColor,
+    Widget? optionWidget,
+    double titleLeft = 10,
+    String? fontFamily}) {
+  Widget backBtn = withBackBtn
+      ? Row(
+          children: [
+            InkWell(
+              child: customBackButton ??
+                  Container(
+                      padding: EdgeInsets.only(left: 20, right: 10),
+                      child: Icon(
+                        Icons.arrow_back_ios,
+                        color: backBtnColor,
+                      )),
+              onTap: () {
+                if (callback == null) {
+                  Get.back();
+                } else {
+                  callback();
+                }
+              },
+            )
+          ],
+        )
+      : Center();
+  return Container(
+    height: kToolbarHeight,
+    width: Get.width,
+    color: Colors.white,
+    alignment: Alignment.center,
+    child: Stack(
+      children: [
+        Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Row(
+              children: [
+                alignLeft ? backBtn : Expanded(child: backBtn),
+                if (alignLeft) SizedBox(width: titleLeft),
+                Spacer(),
+                if (optionWidget != null) optionWidget,
+                if (optionWidget != null) SizedBox(width: 20)
+              ],
+            ),
+          ],
+        ),
+        Center(
+          child: Text(title,
+              style: TextStyle(
+                  fontFamily: fontFamily,
+                  letterSpacing: AppLanguage.isChinese ? 2 : null,
+                  fontSize: 24,
+                  fontWeight: alignLeft ? FontWeight.w600 : FontWeight.w600,
+                  color: fontColor ?? S.color.main)),
+        )
+      ],
+    ),
   );
 }
 
@@ -268,7 +342,7 @@ Widget spacedRow({Widget? child, double space = 25}) {
   );
 }
 
-Future<void> showSuccessLottie(String text) async {
+/*Future<void> showSuccessLottie(String text) async {
   showLottieDialog('assets/lottie/success.json', text);
   await Future.delayed(Duration(milliseconds: 1500));
   Get.back();
@@ -280,7 +354,7 @@ Future<void> showFailedLottie(String text) async {
   await Future.delayed(Duration(milliseconds: 1500));
   Get.back();
   return;
-}
+}*/
 
 void showLottieDialog(String lottieURL, String text) {
   Get.dialog(
@@ -625,5 +699,3 @@ Widget successTickWidget() {
         child: Image.asset('lib/ProX/Assets/tick.png')),
   );
 }
-
-

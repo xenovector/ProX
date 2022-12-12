@@ -20,3 +20,18 @@ final GoogleSignIn googleSignIn = GoogleSignIn(
   ],
 );*/
 
+//Preload? preload;
+String? accessCode;
+//bool useShadow = false;
+
+class RegisterAndLoginMethod {
+  static String get none => 'default';
+  static String get apple => 'apple';
+  static String get facebook => 'facebook';
+  static String get google => 'google';
+  static String get instagram => 'instagram';
+  static String get linkedin => 'linkedin';
+  static String get twitter => 'twitter';
+  static String get wechat => 'wechat';
+  static String get zalo => 'zalo';
+}

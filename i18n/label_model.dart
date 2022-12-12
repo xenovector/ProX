@@ -19,21 +19,30 @@ class LabelSupport extends RData {
     if (json == null) {
       return null;
     }
-    var _supportedLocalJson = json[AppLanguage.Label_Support_JsonKey];
-    List<String> _supportLocal = [];
-    if (_supportedLocalJson is List) {
-      for (var _locale in _supportedLocalJson) {
-        _supportLocal.add(_locale);
+    var localSupportedLocalJson = json[AppLanguage.Label_Support_JsonKey];
+
+    List<String> localSupportLocal = [];
+    List<LabelInfo> localLabelInfoList = [];
+
+    if (localSupportedLocalJson is List) {
+      for (var locale in localSupportedLocalJson) {
+        Map<String, dynamic> localeJson = json[locale];
+
+        var langMap = localeJson[AppLanguage.Label_MapData_JsonKey];
+
+        if (langMap is List) {
+          print("-- locale: '$locale', have empty labels --");
+        } else {
+          localSupportLocal.add(locale);
+          LabelInfo? label = LabelInfo.fromJson(locale, localeJson.checkIsArrayEmpty);
+          if (label != null) localLabelInfoList.add(label);
+        }
       }
     }
-    List<LabelInfo> _labelInfoList = [];
-    for (String langCode in _supportLocal) {
-      LabelInfo? label = LabelInfo.fromJson(langCode, json[langCode]);
-      if (label != null) _labelInfoList.add(label);
-    }
+
     return LabelSupport(
-      supportedLocale: _supportLocal,
-      labelInfoList: _labelInfoList,
+      supportedLocale: localSupportLocal,
+      labelInfoList: localLabelInfoList,
     );
   }
 
@@ -68,17 +77,17 @@ class LabelInfo {
     //Map<dynamic, dynamic> _mapX = json[AppLanguage.Label_MapData_JsonKey];
     //_mapX.forEach((key, value) { print('key: $key, value: $value'); });
     //print(' --- | ---');
-    Map<String, dynamic> _map = json[AppLanguage.Label_MapData_JsonKey];
+    Map<String, dynamic> langMap = json[AppLanguage.Label_MapData_JsonKey];
     return LabelInfo(
       locale: key,
       name: json[AppLanguage.Label_Language_Name],
       imgUrl: json.containsKey(AppLanguage.Label_Locale_Image) ? json[AppLanguage.Label_Locale_Image] : '',
-      version: json.containsKey(AppLanguage.Label_Version_Long_JsonKey) ? json[AppLanguage.Label_Version_Long_JsonKey] : json[AppLanguage.Label_Version_Short_JsonKey],
+      version: json.containsKey(AppLanguage.Label_Version_Long_JsonKey)
+          ? json[AppLanguage.Label_Version_Long_JsonKey]
+          : json[AppLanguage.Label_Version_Short_JsonKey],
       data: json,
-      map: _map.toMapString(),
+      map: langMap.toMapString(),
       isSelected: false,
     );
   }
 }
-
-

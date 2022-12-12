@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:version/version.dart';
 import 'languages.dart';
@@ -11,13 +12,14 @@ class LabelUtil {
 
   // find label value based on key
   String? findValue(String key) {
-    List<LabelInfo> _labels = [];
-    return _labels.firstWhere((item) => item.map.containsKey(key)).map[key];
+    List<LabelInfo> labels = [];
+    return labels.firstWhere((item) => item.map.containsKey(key)).map[key];
   }
 
   // write data into .txt
   Future<File?> writeLabelInto(LabelInfo labelInfo) async {
     LabelInfo? info = await getLabelWithLocale(labelInfo.locale);
+    //print('locale: ${labelInfo.locale}, info: ${info?.version}');
     if (info == null || Version.parse(labelInfo.version) > Version.parse(info.version)) {
       File file = await _labelFile(labelInfo.locale);
       String szData = jsonEncode(labelInfo.data);
@@ -32,7 +34,7 @@ class LabelUtil {
   Future<LabelInfo?> getLabelWithLocale(String langCode) async {
     try {
       final file = await _labelFile(langCode);
-
+      if (!file.existsSync()) return null;
       // Read the file.
       String contents = await file.readAsString();
       final Map<String, dynamic> parsed = jsonDecode(contents);
@@ -49,7 +51,7 @@ class LabelUtil {
           map: map.toMapString(),
           isSelected: false);
     } catch (e) {
-      print('Error_getLabelWithLocale: $e');
+      if (kDebugMode) print('Error_getLabelWithLocale: $e');
       return null;
     }
   }

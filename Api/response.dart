@@ -7,6 +7,7 @@ abstract class RData {
 
   listFromJson(List? json);
 }
+
 class ResponseData<R extends RData> {
   final bool status;
   final int code;
@@ -17,7 +18,15 @@ class ResponseData<R extends RData> {
   final dynamic rawData;
   final RequestException? error;
 
-  const ResponseData({this.status = false, this.code = 0, this.message = '', this.data, this.datas, this.total, this.rawData, this.error});
+  const ResponseData(
+      {this.status = false,
+      this.code = 0,
+      this.message = '',
+      this.data,
+      this.datas,
+      this.total,
+      this.rawData,
+      this.error});
 
   factory ResponseData.fromJson(R item, Map<String, dynamic>? json) {
     if (json == null) return ResponseData<R>();
@@ -26,7 +35,7 @@ class ResponseData<R extends RData> {
     var jsonData = json['data'];
     if (jsonData is List && jsonData.isEmpty) jsonData = null;
 
-    bool _status = json.containsKey('status')
+    bool returnStatus = json.containsKey('status')
         ? json['status']
         : json.containsKey('success')
             ? json['success']
@@ -34,7 +43,7 @@ class ResponseData<R extends RData> {
 
     R? mData;
     List<R>? mDatas;
-    if (_status) {
+    if (returnStatus) {
       if (jsonData is List) {
         mDatas = item.listFromJson(jsonData);
       } else {
@@ -43,7 +52,7 @@ class ResponseData<R extends RData> {
     }
 
     return ResponseData<R>(
-      status: _status,
+      status: returnStatus,
       code: json.containsKey('code') ? json['code'] : 0,
       message: json.containsKey('message') ? json['message'] : '',
       data: mData,

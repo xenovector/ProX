@@ -8,6 +8,7 @@
             "name": "$WORKSPACE_NAME",
             "request": "launch",
             "type": "dart",
+            "program": "lib/Environment/main_dev.dart",
             "args": [
                 "--no-sound-null-safety",
             ]
@@ -17,6 +18,7 @@
             "request": "launch",
             "type": "dart",
             "flutterMode": "profile",
+            "program": "lib/Environment/main_dev.dart",
             "args": [
                 "--no-sound-null-safety",
             ]

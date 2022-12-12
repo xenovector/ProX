@@ -4,17 +4,18 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:get/get.dart';
-import 'package:prox/ProX/Core/app_config.dart';
-import 'package:prox/ProX/Core/extension.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 import 'package:flutter_dialogs/flutter_dialogs.dart';
-import '../Controller/notification_controller.dart';
+import '../Core/app_config.dart';
+import '../Core/extension.dart';
 import '../Core/pro_x.dart';
-import '../Helper/confirmation_dialog.dart';
+import '../Controller/notification_controller.dart';
+import '../ReuseableWidget/confirmation_dialog.dart';
 import '../Helper/device.dart';
 import '../Helper/in_app_browser.dart';
-import '../Theme/style.dart';
+import '../i18n/app_language.dart';
 import '../i18n/language_key.dart';
+import '../Helper/hotkey.dart';
 
 class UtilsShow {
   // Flash.
@@ -47,13 +48,48 @@ class UtilsShow {
   }
 
   // Toast
-  void toast(String msg, {BuildContext? context}) {
+  void toast(String msg, {BuildContext? context, Color? textColor, int milliseconds = 1400}) {
     final scaffold = ScaffoldMessenger.of(context ?? Get.context!);
     scaffold.showSnackBar(
       SnackBar(
-        duration: Duration(milliseconds: 2000),
-        content: Container(color: Colors.blueAccent, child: Text(msg)),
-        action: SnackBarAction(label: "OK", textColor: S.color.main, onPressed: scaffold.hideCurrentSnackBar),
+        duration: Duration(milliseconds: milliseconds),
+        padding: EdgeInsets.zero,
+        elevation: 0,
+        backgroundColor: Colors.transparent,
+        content: Container(
+            margin: EdgeInsets.only(top: 15),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              boxShadow: const [
+                BoxShadow(
+                color: Colors.black12,
+                offset: Offset(0, -1),
+                blurRadius: 2,
+              )
+              ]
+            ),
+            child: Row(
+              children: [
+                SizedBox(width: 18),
+                Expanded(child: Text(msg, style: TextStyle(color: textColor ?? Colors.black))),
+                InkWell(
+                  onTap: () {
+                    //
+                  },
+                  child: SizedBox(
+                    height: 45,
+                    width: 80,
+                    child: Center(child: Text('OK', style: TextStyle(
+                      color: S.color.main,
+                      fontSize: 15,
+                      fontWeight: FontWeight.w500
+                    )))
+                  )
+                )
+              ],
+            )
+          ),
+        //action: SnackBarAction(label: "OK", textColor: S.color.main, onPressed: scaffold.hideCurrentSnackBar),
       ),
     );
   }
@@ -150,7 +186,7 @@ class UtilsShow {
             width: Get.width / 3.9,
             child: ElevatedButton(
               onPressed: cancelAction ??= () => Get.back(result: false),
-              style: ElevatedButton.styleFrom(primary: cancelColor),
+              style: ElevatedButton.styleFrom(backgroundColor: cancelColor),
               child: Padding(
                 padding: EdgeInsets.symmetric(horizontal: 10, vertical: 11),
                 child: Text(cancelText.isEmpty ? L.GENERAL_CANCEL.tr : cancelText,
@@ -163,11 +199,11 @@ class UtilsShow {
             width: needCancel ? Get.width / 3.9 : double.infinity,
             child: ElevatedButton(
               onPressed: confirmAction ??= () => Get.back(result: true),
-              style: ElevatedButton.styleFrom(primary: confirmColor),
+              style: ElevatedButton.styleFrom(backgroundColor: confirmColor),
               child: Padding(
                 padding: EdgeInsets.symmetric(horizontal: 10, vertical: needCancel ? 11 : 12),
                 child: Text(confirmText.isEmpty ? L.GENERAL_OK.tr : confirmText,
-                    style: TextStyle(fontSize: 15, fontWeight: FontWeight.w500)),
+                    style: TextStyle(fontSize: 15, fontWeight: FontWeight.w500, color: Colors.white)),
               ),
             )),
       ],
@@ -234,7 +270,7 @@ class UtilsShow {
                         color: cancelColor ?? S.color.alertSecondaryColor,
                         fontSize: 16,
                         //fontWeight: FontWeight.w500,
-                        letterSpacing: 0.05,
+                        letterSpacing: AppLanguage.isChinese ? 0.05 : null,
                       )),
                 ),
               CupertinoButton(
@@ -244,7 +280,7 @@ class UtilsShow {
                       color: confirmColor ?? S.color.alertPrimaryColor,
                       fontSize: 16,
                       fontWeight: FontWeight.w500,
-                      letterSpacing: 0.05,
+                      letterSpacing: AppLanguage.isChinese ? 0.05 : null,
                     )),
               ),
             ],
@@ -289,7 +325,7 @@ class UtilsShow {
   ///
   /// -Passing it corresponding to your use case.-
   ///
-  void forceUpdateDialog(bool isForce) async {
+  void forceUpdateDialog({bool isForce = false}) async {
     String title = '';
     String message = '';
 

@@ -1,4 +1,4 @@
-import 'package:prox/ProX/Api/response.dart';
+import '../Api/response.dart';
 
 class AccessTokenModel extends RData {
   final String accessToken;

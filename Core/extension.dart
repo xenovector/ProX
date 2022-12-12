@@ -1,34 +1,67 @@
 import 'dart:io';
 import 'dart:math';
 import 'dart:ui';
+import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import 'package:path/path.dart';
+import 'package:sprintf/sprintf.dart';
+import '../Helper/sizer.dart';
+import '../i18n/language_key.dart';
 
 extension MapDynamicValueToString on Map<String, dynamic> {
   Map<String, String> toMapString() {
-    Map<String, String> _szMap = {};
+    Map<String, String> szMap = {};
     forEach((key, value) {
       if (value is String) {
-        _szMap[key] = value.replaceAll("\\n", '\n');
+        szMap[key] = value.replaceAll("\\n", '\n');
       } else {
         print('invalid value of key from toMapString: $key, value: ${value.toString()}');
       }
     });
-    return _szMap;
+    return szMap;
+  }
+
+  Map<String, dynamic> get checkIsArrayEmpty {
+    Map<String, dynamic> thisMap = this;
+    thisMap.forEach((key, value) {
+      if (value is List) {
+        //print('key: $key, value: $value');
+        if (value.isEmpty) {
+          thisMap[key] = null;
+        }
+      }
+    });
+    return thisMap;
+  }
+}
+
+extension EmptyValueInMap on Map<String, dynamic>? {
+  Map<String, dynamic> get checkIsArrayEmpty {
+    if (this == null) return {};
+    Map<String, dynamic> thisMap = this!;
+    thisMap.forEach((key, value) {
+      if (value is List) {
+        //print('key: $key, value: $value');
+        if (value.isEmpty) {
+          thisMap[key] = null;
+        }
+      }
+    });
+    return thisMap;
   }
 }
 
 extension DynamicListToStringList on List<dynamic> {
   List<String> toStringList() {
-    List<String> _list = [];
+    List<String> list = [];
     for (var item in this) {
       if (item is String) {
-        _list.add(item);
+        list.add(item);
       } else {
-        _list.add(item.toString());
+        list.add(item.toString());
       }
     }
-    return _list;
+    return list;
   }
 }
 
@@ -63,6 +96,11 @@ extension ProXInt on int {
   bool endsWith(int value) {
     return toString().endsWith('$value');
   }
+
+  String get withCurrency => sprintf(L.Currency_Value.tr, [this]);
+
+  double get wpx => (this / Sizer.designWidth).w;
+  double get hpx => (this / Sizer.designHeight).h;
 }
 
 extension ProXDouble on double {
@@ -92,6 +130,23 @@ extension ProXDouble on double {
   String get readableFormat {
     return NumberFormat.compact().format(this);
   }
+
+  String get withCurrency => sprintf(L.Currency_Value.tr, [this]);
+
+  bool get isUltraWide => this > 1200;
+  bool get isWide => this > 600;
+
+  /// value provided multiple device width.
+  double get w => this * Get.width;
+
+  /// value provided multiple device height.
+  double get h => this * Get.height;
+
+  /// value provided multiple designed device width to makes others device follow the ratio.
+  double get wpx => (this / Sizer.designWidth).w;
+
+  /// value provided multiple designed device height to makes others device follow the ratio.
+  double get hpx => (this / Sizer.designHeight).h;
 }
 
 extension ProXString on String {
@@ -127,6 +182,12 @@ extension ProXString on String {
     bool hasMinLength = length >= minLength;
 
     return hasDigits & hasUppercase & hasLowercase /*& hasSpecialCharacters*/ & hasMinLength;
+  }
+
+  bool get containSymbol {
+    return contains(RegExp(r'[\^$*.\[\]{}()?\-"!@#%&/\,><:：，。～、！@；？：“”_~`+=（）  ' // <-- Notice the escaped symbols
+        "'" // <-- ' is added to the expression
+        ']'));
   }
 
   /*bool isEmail() {
@@ -179,5 +240,12 @@ extension ProXNullableString on String? {
         r'^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$';
     RegExp regex = RegExp(pattern);
     return (!regex.hasMatch(this!)) ? false : true;
+  }
+
+  bool get containSymbol {
+    if (this == null || this == '') return false;
+    return this!.contains(RegExp(r'[\^$*.\[\]{}()?\-"!@#%&/\,><:：，。～、！@；？：“”_~`+=（）  ' // <-- Notice the escaped symbols
+        "'" // <-- ' is added to the expression
+        ']'));
   }
 }

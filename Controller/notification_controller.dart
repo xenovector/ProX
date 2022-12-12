@@ -5,7 +5,6 @@ import 'package:flutter_fgbg/flutter_fgbg.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:huawei_push/huawei_push.dart' as hms;
-import '../Utilities/utils.dart';
 import '../export.dart';
 
 class NotificationData {
@@ -124,17 +123,17 @@ Future<void> onGMSBackgroundMessageReceived(RemoteMessage message) async {
   // var msg = message.notification.body ?? '';
 
   //if (message.data != null) {
-    var id = message.data['notification_id'];
+  var id = message.data['notification_id'];
 
-    //if (int.parse(quarantine) == 1) {
-      /*if (home.user.healthStatus.geofence) {
+  //if (int.parse(quarantine) == 1) {
+  /*if (home.user.healthStatus.geofence) {
         await showConfirmationWithTitle(L.G_ALERT.tr, L.Home_Covid_Detected.tr);
         Get.to(QuarantineInfoPage(), binding: QuarantineInfoBinding());
       }*/
-    //} else {
-      //eventBus.fire(NotificationData(title, msg, id, payload: message.data));
-      //await Get.to(MessageDetailsPage(), binding: MessageDetailsBinding(null, id: id));
-    //}
+  //} else {
+  //eventBus.fire(NotificationData(title, msg, id, payload: message.data));
+  //await Get.to(MessageDetailsPage(), binding: MessageDetailsBinding(null, id: id));
+  //}
   //}
 }
 

@@ -1,15 +1,21 @@
+import '../CoreModel/core_model.dart';
 import '../Api/response.dart';
 
 class Preload extends RData {
 
-  final List<State>? states;
+  final List<IntroModel> introList;
+  final List<CountryItem> countries;
+  //final List<State>? states;
 
   static final shared = Preload();
 
-  Preload({this.states});
+  Preload({this.introList = const [], this.countries = const []});
 
   factory Preload.fromJson(Map<String, dynamic> json) {
-    return Preload(states: State.shared.listFromJson(json['country_states']));
+    return Preload(
+      introList: IntroModel.shared.listFromJson(json['corridors']),
+      countries: CountryItem.shared.listFromJson(json['countries'])
+    );
   }
 
   @override
@@ -29,62 +35,100 @@ class Preload extends RData {
   }
 }
 
-class State extends RData {
-  final int? id;
-  final String? name;
-  final List<City>? cities;
+class CountryItem extends RData {
+  final String name;
+  final String code;
+  final String dial;
 
-  static final shared = State();
+  static final shared = CountryItem();
 
-  State({this.id, this.name, this.cities});
+  CountryItem({this.name = '', this.code = '', this.dial = ''});
 
-  factory State.fromJson(Map<String, dynamic> json) {
-    return State(id: json['id'], name: json['name'], cities: City.shared.listFromJson(json['cities']));
+  factory CountryItem.fromJson(Map<String, dynamic> json) {
+    return CountryItem(name: json['name'] ?? '', code: json['code'] ?? '', dial: json['dial']);
   }
 
   @override
-  State? fromJson(Map<String, dynamic>? json) {
+  CountryItem? fromJson(Map<String, dynamic>? json) {
     if (json == null) return null;
-    return State.fromJson(json);
+    return CountryItem.fromJson(json);
   }
 
   @override
-  List<State> listFromJson(List? json) {
+  List<CountryItem> listFromJson(List? json) {
     if (json == null) return [];
-    List<State> list = [];
+    List<CountryItem> list = [];
     for (var item in json) {
-      list.add(State.fromJson(item));
+      list.add(CountryItem.fromJson(item));
     }
     return list;
   }
 }
 
-class City extends RData {
+class StateItem extends RData {
+  final int? id;
+  final String? name;
+  final List<CityItem>? cities;
+
+  static final shared = StateItem();
+
+  StateItem({this.id, this.name, this.cities});
+
+  factory StateItem.fromJson(Map<String, dynamic> json) {
+    return StateItem(id: json['id'], name: json['name'], cities: CityItem.shared.listFromJson(json['cities']));
+  }
+
+  @override
+  StateItem? fromJson(Map<String, dynamic>? json) {
+    if (json == null) return null;
+    return StateItem.fromJson(json);
+  }
+
+  @override
+  List<StateItem> listFromJson(List? json) {
+    if (json == null) return [];
+    List<StateItem> list = [];
+    for (var item in json) {
+      list.add(StateItem.fromJson(item));
+    }
+    return list;
+  }
+}
+
+class CityItem extends RData {
   final int? id;
   final String? name;
   final int? stateID;
 
-  static final shared = City();
+  static final shared = CityItem();
 
-  City({this.id, this.name, this.stateID});
+  CityItem({this.id, this.name, this.stateID});
 
-  factory City.fromJson(Map<String, dynamic> json) {
-    return City(id: json['id'], name: json['name'], stateID: json['country_state_id']);
+  factory CityItem.fromJson(Map<String, dynamic> json) {
+    return CityItem(id: json['id'], name: json['name'], stateID: json['country_state_id']);
   }
 
   @override
-  City? fromJson(Map<String, dynamic>? json) {
+  CityItem? fromJson(Map<String, dynamic>? json) {
     if (json == null) return null;
-    return City.fromJson(json);
+    return CityItem.fromJson(json);
   }
 
   @override
-  List<City> listFromJson(List? json) {
+  List<CityItem> listFromJson(List? json) {
     if (json == null) return [];
-    List<City> list = [];
+    List<CityItem> list = [];
     for (var item in json) {
-      list.add(City.fromJson(item));
+      list.add(CityItem.fromJson(item));
     }
     return list;
   }
+}
+
+
+class KeySortItem<T> {
+  final String key;
+  final List<T> items;
+
+  KeySortItem(this.key, this.items);
 }

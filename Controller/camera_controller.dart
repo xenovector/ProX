@@ -1,6 +1,5 @@
 import 'dart:io';
 import 'dart:async';
-import 'dart:typed_data';
 import 'package:camera/camera.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
@@ -11,12 +10,12 @@ import 'package:align_positioned/align_positioned.dart';
 import 'package:image/image.dart' as img;
 import 'package:image_editor/image_editor.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:image_picker/image_picker.dart' as imgPicker;
+import 'package:image_picker/image_picker.dart' as img_picker;
 import 'package:file_picker/file_picker.dart';
-import 'package:flutter/material.dart';
 import '../export.dart';
 
 typedef OnRotatedOverLayer = Widget Function(bool isPortrait);
+
 /// ProX Custom Camera Controller.
 /// [addFrontLayer] Return true if orientation is portrait mode, else false.
 Future<File?> showCameraController({CameraLensDirection? lensDirection, OnRotatedOverLayer? addFrontLayer}) {
@@ -100,12 +99,12 @@ Future<File?> showImagePicker(BuildContext context, {bool customCamera = true, b
       if (customCamera) {
         pickedFile = await showCameraController();
       } else {
-        XFile? xFile = await ImagePicker().pickImage(source: imgPicker.ImageSource.camera);
+        XFile? xFile = await ImagePicker().pickImage(source: img_picker.ImageSource.camera);
         pickedFile = (xFile == null) ? null : File(xFile.path);
       }
       break;
     case 2:
-      XFile? xFile = await ImagePicker().pickImage(source: imgPicker.ImageSource.gallery);
+      XFile? xFile = await ImagePicker().pickImage(source: img_picker.ImageSource.gallery);
       pickedFile = (xFile == null) ? null : File(xFile.path);
       break;
     case 3:
@@ -504,7 +503,6 @@ class CameraProXPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ProXWidget<CameraProXController>(
-        child: GetBuilder<CameraProXController>(
       builder: (ctrl) => Container(
           color: Colors.black,
           child: Stack(
@@ -535,7 +533,7 @@ class CameraProXPage extends StatelessWidget {
               Positioned(
                   left: 20,
                   right: 20,
-                  top: 20 + (SizeConfig.topSafeAreaHeight / 2),
+                  top: 20 + (Sizer.topSafeAreaHeight / 2),
                   child: Row(
                     children: [
                       ctrl.imageFile == null
@@ -605,7 +603,7 @@ class CameraProXPage extends StatelessWidget {
                   ))
             ],
           )),
-    ));
+    );
   }
 
   Widget roundedButton(IconData icon, Color color, Function() callback) {

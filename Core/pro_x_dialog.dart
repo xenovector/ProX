@@ -19,7 +19,7 @@ class ProXDialogController extends GetxController {
   }
 
   void onDone() {
-    Get.back(result: this.itemList[selectedIndex!]);
+    Get.back(result: itemList[selectedIndex!]);
   }
 }
 
@@ -45,13 +45,15 @@ class ProXDialogPage extends StatelessWidget {
               height: 44,
               width: double.infinity,
               margin: EdgeInsets.symmetric(vertical: 3, horizontal: 36),
-                decoration: BoxDecoration(
+              decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(8),
-                  border: ctrl.selectedIndex == index ? Border.all(color: S.color.main, width: 1.5) : null
-                ),
+                  border: ctrl.selectedIndex == index ? Border.all(color: S.color.main, width: 1.5) : null),
               child: Center(
-                child: Text(ctrl.itemList[index],
-                    textAlign: TextAlign.center, style: TextStyle(color: S.color.text, fontWeight: FontWeight.w400),),
+                child: Text(
+                  ctrl.itemList[index],
+                  textAlign: TextAlign.center,
+                  style: TextStyle(color: S.color.text, fontWeight: FontWeight.w400),
+                ),
               )),
           onPressed: () {
             ctrl.selectedIndex = ctrl.selectedIndex == index ? null : index;
@@ -93,8 +95,7 @@ class ProXDialogPage extends StatelessWidget {
                                 Expanded(
                                   child: Text(title,
                                       textAlign: TextAlign.center,
-                                      style:
-                                          TextStyle(color: S.color.main, fontSize: 20, fontWeight: FontWeight.bold)),
+                                      style: TextStyle(color: S.color.main, fontSize: 20, fontWeight: FontWeight.bold)),
                                 ),
                               ],
                             ),

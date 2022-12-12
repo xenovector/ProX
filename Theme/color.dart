@@ -21,8 +21,8 @@ class StyleColor {
 
   /// Text
   final text = darkMode ? textDark : textLight;
-  static const textLight = Color(0xFF6C6C6C);
-  static const textDark = Color(0xFF082F3B);
+  static const textLight = Color(0xFF969595);
+  static const textDark = Color(0xFF4D4D4D);
 
   /// Line
   final line = darkMode ? lineDark : lineLight;
@@ -37,14 +37,27 @@ class StyleColor {
   final alertPrimaryColor = Color(0xFF3182FA);
 
   // Custom
+  final themeLightGrey = Color(0xFFDDDDDD);
+  final themeInActiveGrey = Color(0xFFC6C6C6);
+  final themeTitleColor = Color(0xFF4D4D4D);
+  final themeTextColor = Color(0xFF969595);
+  //
+  final themeMainDefault = Color(0xFF139649);
+  final themeMainLight = Color(0xFF2ED876);
+  final themeMainDark = Color(0xFF22C366);
+  final themeMainShadow = Color(0xFF2DC46D);
+  final themeYellowBg = Color(0xFFFFFCE3);
 
   /// ThemeSwatch
   ///
   /// Add default font if needed. <* e.g. ThemeData(fontFamily: 'Poppins') *>
   ///
   final ThemeData themeData = ThemeData(
-      primarySwatch:
-          swatch); /*.copyWith(
+      primarySwatch: swatch,
+      textSelectionTheme: TextSelectionThemeData(
+        selectionColor: _mainLight,
+        selectionHandleColor: _mainLight,
+      )); /*.copyWith(
     colorScheme: themeData.colorScheme.copyWith(secondary: ThemeColor.main),
   );*/
   static const MaterialColor swatch = MaterialColor(0xFF2C92CE, _color);

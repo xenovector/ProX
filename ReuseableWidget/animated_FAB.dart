@@ -10,7 +10,11 @@ class AnimatedFab extends StatefulWidget {
   final List<String> listOfText;
   final void Function(int) onPressed;
   AnimatedFab(
-      {required this.listOfIcons, required this.onPressed, this.listOfText = const [], this.buttonColor, this.buttonSize = 50});
+      {required this.listOfIcons,
+      required this.onPressed,
+      this.listOfText = const [],
+      this.buttonColor,
+      this.buttonSize = 50});
   @override
   _AnimatedFabState createState() => _AnimatedFabState();
 }
@@ -89,12 +93,7 @@ class _AnimatedFabState extends State<AnimatedFab> with SingleTickerProviderStat
               borderRadius: BorderRadius.circular(28),
               boxShadow: proXShadow),
           child: Center(
-            child: AnimatedIcon(
-              icon: AnimatedIcons.menu_close,
-              progress: _animateIcon!,
-              color: Colors.white,
-              size: 32
-            ),
+            child: AnimatedIcon(icon: AnimatedIcons.menu_close, progress: _animateIcon!, color: Colors.white, size: 32),
           ),
         ),
       );
@@ -120,7 +119,8 @@ class _AnimatedFabState extends State<AnimatedFab> with SingleTickerProviderStat
               opacity: showText ? 1 : 0,
               duration: Duration(milliseconds: showText ? 300 : 500),
               child: Row(children: [
-                Text(widget.listOfText[multipleValue - 1], maxLines: 1, style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                Text(widget.listOfText[multipleValue - 1],
+                    maxLines: 1, style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                 SizedBox(width: 6),
                 Container(
                   height: widget.buttonSize,

@@ -22,53 +22,98 @@ pod 'DexterSwift'
 ``` -->
 <br />
 
-### Example
+### Instruction
+#### Inside your /lib, create a new folder named 'Environment' and create a new file named 'main_dev.dart'. You may have 'main_uat.dart' or 'main_prod.dart' to manage your project environment.
 ```dart
-import 'package:flutter/material.dart';
+import '../ProX/Core/app_config.dart';
+import '../app.dart';
+
+void main() {
+  var configuredApp = const AppConfig(
+    appName: 'Your Project DEV',
+    stagName: 'development',
+    apiBaseUrl: 'https://dev-api.example.com/',
+    child: MyApp(),
+  );
+
+  run(configuredApp);
+}
+```
+
+#### Renamed 'main.dart' into 'app.dart' and overwrite the whole content into below example code.
+```dart
+import 'dart:io';
 import 'package:flutter/services.dart';
-import 'ProX/export.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
+import 'package:flutter_jailbreak_detection/flutter_jailbreak_detection.dart';
+import 'package:version/version.dart';
+import 'ProX/Core/app_config.dart';
+import 'ProX/export.dart';
 // Notification
 //import 'ProX/Controller/notification_controller.dart';
 // Location
 //import 'ProX/Controller/location_controller.dart';
 
-void main() {
+void run(Widget app) async {
   WidgetsFlutterBinding.ensureInitialized();
-  Firebase.initializeApp();
-  SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(statusBarColor: Colors.transparent));
-  ProXStorage.init();
-  //NC.init();
-  runApp(MyApp());
+  await Firebase.initializeApp();
+  await ProXStorage.init();
+  await DevicePreferences.init();
+
+  if (Platform.isAndroid && Version.parse(DevicePreferences.osVersion) < Version.parse('7.2')) {
+    ByteData data = await PlatformAssetBundle().load('lib/ProX/Assets/ca/lets-encrypt-r3.pem');
+    SecurityContext.defaultContext.setTrustedCertificatesBytes(data.buffer.asUint8List());
+  }
+
+  SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
+      statusBarColor: Colors.transparent,
+      systemNavigationBarColor: DevicePreferences.androidSdkVersion < 29 ? S.color.main : Colors.transparent,
+      systemNavigationBarIconBrightness: Brightness.dark));
+  FlutterError.onError = FirebaseCrashlytics.instance.recordFlutterFatalError;
+  SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge).then(
+    (_) => runApp(app),
+  );
 }
 
 class MyApp extends StatelessWidget {
-  // This widget is the root of your application.
+  const MyApp({Key? key}) : super(key: key);
+
   @override
   Widget build(BuildContext context) {
+
+    // Configuration about App.
+    var config = AppConfig.of(context)!;
+    ApiSetting.endPoint = config.apiBaseUrl;
     ErrorWidget.builder = ProX.customErrorWidget;
-    // Add default font if needed. <* e.g. ThemeData(fontFamily: 'Poppins') *>
-    final ThemeData theme = ThemeData(primarySwatch: ThemeColor.swatch);
+
+    // MaterialApp.
     return GetMaterialApp(
-      title: 'App Name',
-      theme: theme.copyWith(
-        colorScheme: theme.colorScheme.copyWith(secondary: ThemeColor.main),
-      ),
-      initialBinding: LoadingBinding(),
+      title: config.appName,
+      theme: S.color.themeData,
+      initialBinding: LoadingBinding(config),
       home: LoadingPage(),
     );
   }
 }
 
 class LoadingBinding extends Bindings {
+
+  final AppConfig config;
+
+  LoadingBinding(this.config);
+
   @override
   void dependencies() {
-    Get.put(LoadingController());
+    Get.put(LoadingController(config));
   }
 }
 
 class LoadingController extends ProXController {
+  final AppConfig config;
+
+  LoadingController(this.config);
+
   bool fadeVisible = false;
   bool didInit = false;
   bool showLoading = false;
@@ -76,72 +121,91 @@ class LoadingController extends ProXController {
   @override
   void onInit() async {
     super.onInit();
-    ProX.defaultBackgroundColor = ThemeColor.background;
+
+    // Overwrite Your default background color if needed.
+    /*ProX.defaultBackgroundColor = S.color.background;*/
+
+    // Overwrite Your default loading screen if needed.
+    /*ProX.defaultLoadingWidget = Opacity(
+      opacity: 1,
+      child: Container(
+          width: double.infinity,
+          height: double.infinity,
+          color: Colors.white,
+          padding: EdgeInsets.symmetric(horizontal: 60),
+          child: Center(child: Lottie.asset('assets/lottie/loading.json', width: Get.width * 0.65))),
+    );*/
+
+    // And much more to overwrite.
     ProX.setStatusBarTextColor(isWhite: false);
     ProX.setAllowedOrientation([DeviceOrientation.portraitUp]);
     ProX.onFailed = ((code, msg, {tryAgain}) async {
-      if (code == ServerError) {
+      if (code == ApiSetting.ServerError) {
         //showInAppBrowser(msg, appBarTitle: L.G_ERROR.tr);
         return false;
-      } else if (code == RequestTimeout) {
-        await showNativeDialog('Error: $code, You may experience slow internet issue, please try again later.');
+      } else if (code == ApiSetting.RequestTimeout) {
+        await U.show.nativeDialog('Error: $code', 'You may experience slow internet issue, please try again later.');
         if (tryAgain != null) tryAgain();
         return false;
-      } else if (code.endsWith(SessionExpired) || code.endsWith(ForceLogout)) {
+      } else if (code.endsWith(ApiSetting.SessionExpired) || code.endsWith(ApiSetting.ForceLogout)) {
         accessToken.val = '';
-        await showNativeDialog('Your seesion has expired, please login again.');
+        await U.show.nativeDialog(L.ERROR_SESSION_EXPIRED_TITLE.tr, L.ERROR_SESSION_EXPIRED_MESSAGE.tr);
         Get.back();
         return false;
-      } else if (code.endsWith(ForceUpdate)) {
-        openForceUpdateDialog();
+      } else if (code.endsWith(ApiSetting.ForceUpdate)) {
+        U.show.forceUpdateDialog(true);
         return false;
-      } else if (code == Maintenance) {
-        showNativeDialog('Server is under maintenance, please try again later.', message: msg);
+      } else if (code == ApiSetting.Maintenance) {
+        U.show.nativeDialog(L.ERROR_MAINTENANCE_TITLE.tr, L.ERROR_MAINTENANCE_MESSAGE.tr);
         return false;
-      } else if (code == InternalError) {
-        showNativeDialog('Error: $code', message: msg);
+      } else if (code == ApiSetting.InternalError) {
+        U.show.nativeDialog('Error: $code', msg);
         return false;
       }
       return true;
     });
-    checkCredential();
   }
 
   @override
   void onReady() async {
     super.onReady();
-    await Future.delayed(Duration(milliseconds: 500));
-    fadeVisible = true;
-    update();
+    Sizer.init();
+
+    bool jailbroken = await FlutterJailbreakDetection.jailbroken;
+    print('jailbroken: $jailbroken');
+
+    if (accessToken.val == '' || stagName.val != config.stagName) {
+      //var guest = await Api.getGuestData(onFailed);
+      /*if (guest != null) {
+        accessToken.val = guest.token;
+        stagName.val = config.stagName;
+      }*/
+    }
+    checkCredential();
+  }
+
+  @override
+  Future<bool> onFailed(int code, String msg, {Function()? tryAgain}) async {
+    U.show.nativeDialog('Error: $code', msg);
+    return true;
   }
 
   void checkCredential() async {
-    await DevicePreferences.init();
-
-    // RequestException? error = await AppLanguage.init();
-    // if (error != null) {
-    //   print('AppLanguage.init Error: ${error.errorMessage}');
-    //   await showNativeDialog('Error: ${error.code}', message: error.errorMessage, onDone: checkCredential);
-    //   return;
-    // }
+    var error = await AppLanguage.init(isDefault: true);
+    if (error != null) {
+      if (kDebugMode) print('-- AppLanguage.init Error: ${error.errorMessage}');
+    }
 
     // await getAppSetting(onFailed); [e.g. phone number prefix, bank name, state list]
 
-    moveToEntryPage();
+    // moveToEntryPage();
   }
 
-  void moveToEntryPage() async {
-    if (!didInit) {
-      didInit = true;
-    } else {
-      //await getUpdateDevice((code, message, {tryAgain}) async => true);
-      //await Future.delayed(Duration(milliseconds: 800));
-      //Get.offAll(WalkThroughPage(), binding: WalkThroughBinding());
-    }
-  }
 }
 
 class LoadingPage extends StatelessWidget {
+  const LoadingPage({Key? key}) : super(key: key);
+
   Widget splashScreen(LoadingController ctrl) {
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
@@ -152,9 +216,12 @@ class LoadingPage extends StatelessWidget {
         //Image.asset('assets/app_logo.png', width: 220),
         SizedBox(height: 30),
         ElevatedButton(
-          onPressed: () {
+          onPressed: () async {
             print('Hello World!');
-            ctrl.isLoading(true, seconds: 3);
+            //ctrl.isLoading(true);
+            //await Api.getPreload(ctrl.onFailed);
+            //ctrl.isLoading(false);
+            //Get.to(PresenterPage(), binding: PresenterBinding());
           },
           child: Container(padding: EdgeInsets.symmetric(vertical: 12, horizontal: 6), child: Text('Test')),
         ),
@@ -166,43 +233,52 @@ class LoadingPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    SizeConfig().init(context);
-    return Scaffold(
-        body: ProXWidget<LoadingController>(
-          child: GetBuilder<LoadingController>(
-              builder: (ctrl) => Container(
-                    color: Colors.black,
-                    child: Stack(
-                      children: [
-                        // Main Loaidng Screen with fade effect.
-                        Positioned.fill(
-                          child: AnimatedOpacity(
-                            opacity: ctrl.fadeVisible ? 1.0 : 0.0,
-                            duration: Duration(milliseconds: 1200),
-                            onEnd: () => ctrl.moveToEntryPage(),
-                            child: splashScreen(ctrl),
-                          ),
-                        ),
-                        // Loading Widget for initialize purpose.
-                        Positioned.fill(
-                            child: ctrl.showLoading
-                                ? Container(
-                                    width: double.infinity,
-                                    height: double.infinity,
-                                    color: Colors.black26,
-                                    child: Center(
-                                      child: CircularProgressIndicator(),
-                                    ))
-                                : Center()),
-                      ],
-                    ),
-                  )),
-        ));
+    return ProXWidget<LoadingController>(
+      customBackgroundColor: S.color.main,
+      builder: (ctrl) => Center(
+        child: Image.asset('assets/splash.png', fit: BoxFit.contain, width: Get.width * 0.65),
+      ),
+    );
   }
+
+  /*@override
+  Widget build(BuildContext context) {
+    return ProXWidget<LoadingController>(
+          builder: (ctrl) => Container(
+                color: Colors.white,
+                child: Stack(
+                  children: [
+                    // Main Loaidng Screen with fade effect.
+                    Positioned.fill(
+                      child: AnimatedOpacity(
+                        opacity: ctrl.fadeVisible ? 1.0 : 0.0,
+                        duration: Duration(milliseconds: 1200),
+                        onEnd: () => ctrl.moveToEntryPage(),
+                        child: splashScreen(ctrl),
+                      ),
+                    ),
+                    // Loading Widget for initialize purpose.
+                    Positioned.fill(
+                        child: ctrl.showLoading
+                            ? Container(
+                                width: double.infinity,
+                                height: double.infinity,
+                                color: Colors.black26,
+                                child: Center(
+                                  child: CircularProgressIndicator(),
+                                ))
+                            : Center()),
+                  ],
+                ),
+              ),
+    );
+  }*/
 }
 
 ```
 <br />
+
+#### flutter run -t /lib/environment/main_Dev.dart, and u are good to go. (Remember flutter pub get for the used packages, kindly refer documents below.)
 
 ### Useful Utilities
 ```dart
@@ -232,8 +308,10 @@ bool isGMS = await ProX.isGMS():
 String iosAppID = 'e.g. 123456789'
 String hmsAppID = 'e.g. 123456789'
 
-openAppStore();
-openForceUpdateDialog();
+// U stands for Utilities.
+// Anything u want to show just call U.show.
+U.show.nativeDialog('Title', 'Message');
+U.show.forceUpdateDialog();
 ```
 <br />
 
@@ -243,7 +321,7 @@ openForceUpdateDialog();
 Future<bool> onFailed(int code, String msg, {Function()? tryAgain}) async {
   isLoading(false);
   bool handlePrivately = await super.onFailed(code, msg, tryAgain: tryAgain);
-  if (handlePrivately) await showNativeDialog('Error: $code', message: msg);
+  if (handlePrivately) await U.show.nativeDialog('Error: $code', msg);
   return handlePrivately;
 }
 ```
@@ -268,6 +346,7 @@ This project template using not only getx but many other plugin as well, below w
   get:
   get_storage:
   intl:
+  path:
   package_info_plus:
   device_info_plus:
   connectivity_plus:
@@ -290,9 +369,14 @@ This project template using not only getx but many other plugin as well, below w
   permission_handler:
   flutter_dialogs:
   share_plus:
-  # carousel_slider:
-  # uni_links:
+  uuid:
+  carousel_slider:
   flutter_native_splash:
+  smooth_page_indicator:
+  pin_code_fields:
+  uni_links:
+  flutter_jailbreak_detection:
+  sticky_headers:
 
   # --- listing use ---
   pull_to_refresh:
@@ -318,23 +402,30 @@ This project template using not only getx but many other plugin as well, below w
   huawei_map:
   # --- -------- --- ---
 
+  # --- push notification and firebase ---
   # onesignal_flutter:
   firebase_core:
   firebase_messaging:
   firebase_crashlytics:
+  firebase_analytics:
   huawei_push:
   flutter_fgbg:
-  # path: lib/ProX/Download/hms/huawei_map
-  # --- ------------ --- ---
+  # --- ---- ------------ --- -------- ---
+
+  # --- social media login ---
+  # google_sign_in:
+  # flutter_facebook_auth:
+  # sign_in_with_apple:
+  # linkedin_login:
+  # twitter_login:
+  # --- ------ ----- ----- ---
 
   # --- Game Development use ---
-  flame:
-  flame_splash_screen:
+  # flame:
+  # flame_splash_screen:
   # --- ---- ----------- --- ---
 
   # list project base plugin here:
-
-
 
   # modal_bottom_sheet:
   # smooth_page_indicator:
@@ -354,14 +445,18 @@ This project template using not only getx but many other plugin as well, below w
   # fl_chart:
 
 # Defined your native splash screen if you have one.
+# After defined, run command: "flutter pub run flutter_native_splash:create".
 # flutter_native_splash:
+    # color: "#2ED876"
     # background_image: "assets/splash_bg.png"
+    # image: "assets/splash.png"
     # android_gravity: fill
     # fullscreen: true
 ```
 ```yaml
 assets:
     - lib/ProX/Assets/
+    - lib/ProX/Assets/ca/
     - lib/ProX/Assets/lottie/
 ```
 <br />
@@ -377,6 +472,7 @@ assets:
   # assets:
   assets:
     - lib/ProX/Assets/
+    - lib/ProX/Assets/ca/
     - lib/ProX/Assets/lottie/
     - assets/
     - assets/images/
@@ -474,10 +570,13 @@ buildscript {
     }
 
     dependencies {
-        classpath 'com.android.tools.build:gradle:7.1.2'
+        classpath 'com.android.tools.build:gradle:7.2.0'
+        // START: FlutterFire Configuration
+  //*   classpath 'com.google.gms:google-services:4.3.10'
+  //*   classpath 'com.google.firebase:firebase-crashlytics-gradle:2.8.1'
+        // END: FlutterFire Configuration
         classpath 'org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version'
   //*   classpath 'com.huawei.agconnect:agcp:1.4.1.300'
-  //*   classpath 'com.google.gms:google-services:4.3.10'
     }
 }
 
@@ -494,10 +593,14 @@ in `/android/app/build.gradle`, add:
 
 ```swift
 
-// include this if u want to support for hms service.
-apply plugin: 'com.huawei.agconnect'
-
-apply plugin: 'com.google.gms.google-services'
+apply plugin: 'com.android.application'
+// START: FlutterFire Configuration
+// apply plugin: 'com.google.gms.google-services'
+// apply plugin: 'com.google.firebase.crashlytics'
+// END: FlutterFire Configuration
+// apply plugin: 'com.huawei.agconnect'
+apply plugin: 'kotlin-android'
+apply from: "$flutterRoot/packages/flutter_tools/gradle/flutter.gradle"
 
 def keystorePropertiesFile = rootProject.file("key.properties")
 def keystoreProperties = new Properties()
@@ -507,7 +610,7 @@ if (keystorePropertiesFile.exists()) {
 
 android {
 
-    compileSdkVersion 31
+    compileSdkVersion 33
 
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
@@ -523,8 +626,7 @@ android {
     }
 
     defaultConfig {
-      minSdkVersion 21
-      targetSdkVersion 31
+      minSdkVersion 22
     }
 
     signingConfigs {
@@ -839,6 +941,9 @@ Add those extra setting for permission plugin in your Podfile, and that's all.
   installer.pods_project.targets.each do |target|
     flutter_additional_ios_build_settings(target)
     target.build_configurations.each do |config|
+      config.build_settings['EXPANDED_CODE_SIGN_IDENTITY'] = ""
+      config.build_settings['CODE_SIGNING_REQUIRED'] = "NO"
+      config.build_settings['CODE_SIGNING_ALLOWED'] = "NO"
       config.build_settings['GCC_PREPROCESSOR_DEFINITIONS'] ||= [
         '$(inherited)',
 
@@ -875,8 +980,10 @@ There is a lot of permission needed to be add into your project based on use cas
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-permission android:name="android.permission.VIBRATE"/>
-    <uses-permission android:name="android.permission.ACCESS_COARES_LOCATION" />
-    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <!-- <uses-permission android:name="android.permission.RECORD_AUDIO" /> -->
+    <!-- <uses-permission android:name="android.permission.FOREGROUND_SERVICE" /> -->
+    <!-- <uses-permission android:name="android.permission.ACCESS_COARES_LOCATION" /> -->
+    <!-- <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" /> -->
     <!-- <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" /> -->
 
   <queries>
@@ -895,6 +1002,7 @@ There is a lot of permission needed to be add into your project based on use cas
       <action android:name="android.intent.action.SEND" />
       <data android:mimeType="*/*" />
     </intent>
+    <!-- <provider android:authorities="com.facebook.katana.provider.PlatformProvider" /> -->
   </queries>
 ````
 </details>

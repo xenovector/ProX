@@ -1,11 +1,9 @@
+import 'dart:io';
 import 'dart:async';
 import 'dart:convert';
-import 'dart:io';
-import 'package:flutter/foundation.dart';
+import 'package:sprintf/sprintf.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
-import 'package:sprintf/sprintf.dart';
-import '../Utilities/utils.dart';
 import '../export.dart';
 
 class InAppBrowerBinding extends Bindings {
@@ -73,38 +71,34 @@ class InAppBrowserPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ProXWidget<InAppBrowserController>(
-      appBar: appBarTitle.isEmptyOrNull
-          ? null
-          : GetBuilder<InAppBrowserController>(builder: (ctrl) => customAppBar(appBarTitle!, withBackBtn: true)),
-      child: GetBuilder<InAppBrowserController>(
-        builder: (ctrl) => InAppWebView(
-          gestureRecognizers: {
-            Factory(() => VerticalDragGestureRecognizer()),
-            Factory(() => HorizontalDragGestureRecognizer()),
-          },
-          initialUrlRequest: getURLRequest(),
-          initialOptions: options,
-          pullToRefreshController: ctrl.pullToRefreshController,
-          onWebViewCreated: (InAppWebViewController webViewController) {
-            ctrl.webViewController = webViewController;
-            ctrl.webViewController!.addJavaScriptHandler(handlerName: 'Flutter', callback: ctrl.onJavascriptHandler);
-          },
-          onLoadStop: (InAppWebViewController controller, Uri? url) {
-            //print('Page finished loading: $url');
-            ctrl.pullToRefreshController?.endRefreshing();
-            Future.delayed(Duration(milliseconds: 100)).then((_) {
-              ctrl.isLoading(false);
-            });
-          },
-          onLoadError: (controller, url, code, message) {
-            U.show.toast(sprintf(L.GENERAL_ERROR_CODE_COLON_MSG.tr, [code, message]), context: context);
+      appBar: appBarTitle.isEmptyOrNull ? null : (ctrl) => customAppBar(appBarTitle!, withBackBtn: true),
+      builder: (ctrl) => InAppWebView(
+        gestureRecognizers: {
+          Factory(() => VerticalDragGestureRecognizer()),
+          Factory(() => HorizontalDragGestureRecognizer()),
+        },
+        initialUrlRequest: getURLRequest(),
+        initialOptions: options,
+        pullToRefreshController: ctrl.pullToRefreshController,
+        onWebViewCreated: (InAppWebViewController webViewController) {
+          ctrl.webViewController = webViewController;
+          ctrl.webViewController!.addJavaScriptHandler(handlerName: 'Flutter', callback: ctrl.onJavascriptHandler);
+        },
+        onLoadStop: (InAppWebViewController controller, Uri? url) {
+          //print('Page finished loading: $url');
+          ctrl.pullToRefreshController?.endRefreshing();
+          Future.delayed(Duration(milliseconds: 100)).then((_) {
             ctrl.isLoading(false);
-          },
-          onLoadHttpError: (controller, url, statusCode, description) {
-            U.show.toast(sprintf(L.GENERAL_ERROR_CODE_COLON_MSG.tr, [statusCode, description]), context: context);
-            ctrl.isLoading(false);
-          },
-        ),
+          });
+        },
+        onLoadError: (controller, url, code, message) {
+          U.show.toast(sprintf(L.GENERAL_ERROR_CODE_COLON_MSG.tr, [code, message]), context: context);
+          ctrl.isLoading(false);
+        },
+        onLoadHttpError: (controller, url, statusCode, description) {
+          U.show.toast(sprintf(L.GENERAL_ERROR_CODE_COLON_MSG.tr, [statusCode, description]), context: context);
+          ctrl.isLoading(false);
+        },
       ),
     );
   }
