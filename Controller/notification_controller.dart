@@ -52,17 +52,11 @@ class NC {
       hms.Push.onNotificationOpenedApp.listen((event) async {
         printSuperLongText('onTap event: ${event.toString()}');
         Map<String, dynamic> data = event['extras'];
-        String quarantine = data['quarantine'];
-        String id = data['notification_id'];
-        if (int.parse(quarantine) == 1) {
-          /*if (home.user.healthStatus.geofence) {
-          await showConfirmationWithTitle(L.G_ALERT.tr, L.Home_Covid_Detected.tr);
-          Get.to(QuarantineInfoPage(), binding: QuarantineInfoBinding());
-        }*/
-        } else {
-          U.show.flash(data['title'], data['body'],
-              data: NotificationData(data['title'], data['body'], id, payload: data));
-        }
+        String title = data['title'] ?? 'null_title';
+        String body = data['body'] ?? 'null_body';
+        String id = data['notification_id'] ?? 'null_ID';
+
+        U.show.topFlash(title, body, data: NotificationData(title, body, id.toString(), payload: data));
       });
 
       var initialNotification = await hms.Push.getInitialNotification();
@@ -80,12 +74,13 @@ class NC {
 
       messaging.onTokenRefresh.listen((String token) {
         pushToken = token;
-        /*if (userID != null) {
-        getSetupNotification((int code, String message) async {
-          print('onFcmRefreshToken.Error: $code, $message');
-          return true;
-        });
-      }*/
+        /*locker.pushToken.val = pushToken;
+        if (getUserData.isGuest == false) {
+          Api.updateFcmToken((int code, String message, {dynamic Function()? tryAgain}) async {
+            print('onFcmRefreshToken.Error: $code, $message');
+            return true;
+          });
+        }*/
       });
 
       FirebaseMessaging.onMessage.listen(onGMSMessageReceived);
@@ -102,16 +97,9 @@ void onGMSMessageReceived(RemoteMessage message) async {
   var title = message.notification?.title ?? '';
   var msg = message.notification?.body ?? '';
 
-  String quarantine = message.data['quarantine'];
-  String id = message.data['notification_id'];
-  if (int.parse(quarantine) == 1) {
-    /*if (home.user.healthStatus.geofence) {
-        await showConfirmationWithTitle(L.G_ALERT.tr, L.Home_Covid_Detected.tr);
-        Get.to(QuarantineInfoPage(), binding: QuarantineInfoBinding());
-      }*/
-  } else {
-    U.show.flash(title, msg, data: NotificationData(title, msg, id, payload: message.data));
-  }
+  String id = message.data['notification_id'] ?? 'null_ID';
+
+  U.show.topFlash(title, msg, data: NotificationData(title, msg, id, payload: message.data));
 }
 
 Future<void> onGMSBackgroundMessageReceived(RemoteMessage message) async {
@@ -119,22 +107,15 @@ Future<void> onGMSBackgroundMessageReceived(RemoteMessage message) async {
 
   print("Handling a background message: ${message.messageId}");
 
-  // var title = message.notification.title ?? '';
-  // var msg = message.notification.body ?? '';
+  print("Handling a background message: ${message.messageId}, data: ${message.data}");
 
-  //if (message.data != null) {
-  var id = message.data['notification_id'];
+  var title = message.notification?.title ?? '';
+  var msg = message.notification?.body ?? '';
 
-  //if (int.parse(quarantine) == 1) {
-  /*if (home.user.healthStatus.geofence) {
-        await showConfirmationWithTitle(L.G_ALERT.tr, L.Home_Covid_Detected.tr);
-        Get.to(QuarantineInfoPage(), binding: QuarantineInfoBinding());
-      }*/
-  //} else {
-  //eventBus.fire(NotificationData(title, msg, id, payload: message.data));
-  //await Get.to(MessageDetailsPage(), binding: MessageDetailsBinding(null, id: id));
-  //}
-  //}
+  if (NC.isForeground) {
+    String id = message.data['notification_id'] ?? 'null_ID';
+    U.show.topFlash(title, msg, data: NotificationData(title, msg, id, payload: message.data));
+  }
 }
 
 void onHMSMessageReceived(hms.RemoteMessage message) async {
@@ -148,17 +129,11 @@ void onHMSMessageReceived(hms.RemoteMessage message) async {
     }*/
     //hms.Push.cancelNotificationsWithTag(tag)
     Map<String, dynamic> data = jsonDecode(message.data ?? '');
-    int quarantine = data['quarantine'];
-    int id = data['notification_id'];
-    if (quarantine == 1) {
-      /*if (home.user.healthStatus.geofence) {
-        await showConfirmationWithTitle(L.G_ALERT.tr, L.Home_Covid_Detected.tr);
-        Get.to(QuarantineInfoPage(), binding: QuarantineInfoBinding());
-      }*/
-    } else {
-      U.show.flash(data['title'], data['body'],
-          data: NotificationData(data['title'], data['body'], id.toString(), payload: data));
-    }
+    String title = data['title'] ?? 'null_title';
+    String body = data['body'] ?? 'null_body';
+    int id = data['notification_id'] ?? 'null_ID';
+
+    U.show.topFlash(title, body, data: NotificationData(title, body, id.toString(), payload: data));
   } else {
     hms.Push.localNotification({
       hms.HMSLocalNotificationAttr.TITLE: '[Headless] DataMessage Received',

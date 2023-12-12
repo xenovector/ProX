@@ -4,9 +4,7 @@ import 'dart:ui';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import 'package:path/path.dart';
-import 'package:sprintf/sprintf.dart';
 import '../Helper/sizer.dart';
-import '../i18n/language_key.dart';
 
 extension MapDynamicValueToString on Map<String, dynamic> {
   Map<String, String> toMapString() {
@@ -97,7 +95,7 @@ extension ProXInt on int {
     return toString().endsWith('$value');
   }
 
-  String get withCurrency => sprintf(L.Currency_Value.tr, [this]);
+  //String get withCurrency => sprintf(L.Currency_Value.tr, [this]);
 
   double get wpx => (this / Sizer.designWidth).w;
   double get hpx => (this / Sizer.designHeight).h;
@@ -131,7 +129,7 @@ extension ProXDouble on double {
     return NumberFormat.compact().format(this);
   }
 
-  String get withCurrency => sprintf(L.Currency_Value.tr, [this]);
+  //String get withCurrency => sprintf(L.Currency_Value.tr, [this]);
 
   bool get isUltraWide => this > 1200;
   bool get isWide => this > 600;

@@ -6,26 +6,27 @@ class R {
   static final prox = _ProXAssets();
 }
 
-// Lottie
-class _Lottie {
-  static const path = 'assets/lottie';
-  final loading = '$path/loading.json';
+// Prox Internal Assets
+class _ProXAssets {
+  static const path = 'lib/ProX/Assets';
+  final tick = '$path/tick.png';
+  final greenTick = '$path/green_tick.png';
 }
 
-// Image
-class _Image {
-  static const path = 'assets/img';
-  final bannerX = '$path/bannerX.png';
-}
-
-// Icons
+// Project Icons
 class _Icons {
   static const path = 'assets/img';
   final iconsX = '$path/iconsX.png';
 }
 
-class _ProXAssets {
-  static const path = 'lib/ProX/Assets';
-  final tick = '$path/tick.png';
-  final greenTick = '$path/green_tick.png';
+// Project Image
+class _Image {
+  static const path = 'assets/img';
+  final bannerX = '$path/bannerX.png';
+}
+
+// Project Lottie
+class _Lottie {
+  static const path = 'assets/lottie';
+  final loading = '$path/loading.json';
 }

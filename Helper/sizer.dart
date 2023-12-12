@@ -2,7 +2,7 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import '../Core/pro_x_storage.dart';
+import '../Core/prox_locker.dart';
 
 class Sizer {
   static MediaQueryData mqData = Get.mediaQuery;
@@ -33,6 +33,13 @@ class Sizer {
   static double designHeight = 830;
   // ---
 
+  static double get bottomSafeAreaWithSpec {
+    if (Platform.isIOS) {
+      return 15 + Sizer.bottomSafeAreaHeight / 2;
+    } else {
+      return 15 + Sizer.bottomSafeAreaHeight;
+    }
+  }
 
   static void init() async {
     // reset value for optimized device.

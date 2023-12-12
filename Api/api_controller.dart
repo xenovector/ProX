@@ -1,6 +1,7 @@
 import '../model/preload.dart';
-import 'dio_client.dart';
 import '../CoreModel/core_model.dart';
+import 'api_error.dart';
+import 'dio_client.dart';
 
 ///
 /// ### Api Naming Tips:
@@ -31,8 +32,8 @@ class Api {
 
   //
   static Future<Preload?> getPreload(OnFail onFail) async {
-    const urlPath = 'https://api.spectaclex.com/products/random';
-    var request = RequestTask.set(urlPath, headerType: HeaderType.standard, usingRawURL: true);
+    const urlPath = '/preload';
+    var request = RequestTask.set(urlPath, headerType: HeaderType.standard);
     try {
       var response = await requestFilter<Preload>(Preload(), request);
       return response.data;

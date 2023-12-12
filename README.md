@@ -30,8 +30,8 @@ import '../app.dart';
 
 void main() {
   var configuredApp = const AppConfig(
-    appName: 'Your Project DEV',
-    stagName: 'development',
+    appName: '<Project> DEV',
+    environment: Environment.DEV,
     apiBaseUrl: 'https://dev-api.example.com/',
     child: MyApp(),
   );
@@ -44,22 +44,36 @@ void main() {
 ```dart
 import 'dart:io';
 import 'package:flutter/services.dart';
-import 'package:firebase_core/firebase_core.dart';
-import 'package:firebase_crashlytics/firebase_crashlytics.dart';
-import 'package:flutter_jailbreak_detection/flutter_jailbreak_detection.dart';
+import 'Global/global_controller.dart';
+import 'Global/splash_page.dart';
+import 'ProX/Api/api_setting.dart';
 import 'package:version/version.dart';
-import 'ProX/Core/app_config.dart';
+import 'ProX/Core/prox_app_config.dart';
 import 'ProX/export.dart';
+// Firebase
+//import 'package:firebase_core/firebase_core.dart';
+//import 'package:flutter/services.dart';
+//import 'firebase_options.dart';
+//import 'package:firebase_crashlytics/firebase_crashlytics.dart';
+
 // Notification
 //import 'ProX/Controller/notification_controller.dart';
+
 // Location
 //import 'ProX/Controller/location_controller.dart';
 
 void run(Widget app) async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp();
-  await ProXStorage.init();
+
+  // Firebase.initializeApp(
+  //   options: DefaultFirebaseOptions.currentPlatform,
+  // );
+
+  await ProXLocker.init();
   await DevicePreferences.init();
+  // NC.init();
+
+  if (Platform.isIOS) SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual, overlays: [SystemUiOverlay.top]);
 
   if (Platform.isAndroid && Version.parse(DevicePreferences.osVersion) < Version.parse('7.2')) {
     ByteData data = await PlatformAssetBundle().load('lib/ProX/Assets/ca/lets-encrypt-r3.pem');
@@ -70,10 +84,11 @@ void run(Widget app) async {
       statusBarColor: Colors.transparent,
       systemNavigationBarColor: DevicePreferences.androidSdkVersion < 29 ? S.color.main : Colors.transparent,
       systemNavigationBarIconBrightness: Brightness.dark));
-  FlutterError.onError = FirebaseCrashlytics.instance.recordFlutterFatalError;
-  SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge).then(
+  // if (!isHMS.val) FlutterError.onError = FirebaseCrashlytics.instance.recordFlutterFatalError;
+  /*SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge).then(
     (_) => runApp(app),
-  );
+  );*/
+  runApp(app);
 }
 
 class MyApp extends StatelessWidget {
@@ -91,188 +106,10 @@ class MyApp extends StatelessWidget {
     return GetMaterialApp(
       title: config.appName,
       theme: S.color.themeData,
-      initialBinding: LoadingBinding(config),
-      home: LoadingPage(),
+      initialBinding: GlobalBinding(config),
+      home: SplashPage(),
     );
   }
-}
-
-class LoadingBinding extends Bindings {
-
-  final AppConfig config;
-
-  LoadingBinding(this.config);
-
-  @override
-  void dependencies() {
-    Get.put(LoadingController(config));
-  }
-}
-
-class LoadingController extends ProXController {
-  final AppConfig config;
-
-  LoadingController(this.config);
-
-  bool fadeVisible = false;
-  bool didInit = false;
-  bool showLoading = false;
-
-  @override
-  void onInit() async {
-    super.onInit();
-
-    // Overwrite Your default background color if needed.
-    /*ProX.defaultBackgroundColor = S.color.background;*/
-
-    // Overwrite Your default loading screen if needed.
-    /*ProX.defaultLoadingWidget = Opacity(
-      opacity: 1,
-      child: Container(
-          width: double.infinity,
-          height: double.infinity,
-          color: Colors.white,
-          padding: EdgeInsets.symmetric(horizontal: 60),
-          child: Center(child: Lottie.asset('assets/lottie/loading.json', width: Get.width * 0.65))),
-    );*/
-
-    // And much more to overwrite.
-    ProX.setStatusBarTextColor(isWhite: false);
-    ProX.setAllowedOrientation([DeviceOrientation.portraitUp]);
-    ProX.onFailed = ((code, msg, {tryAgain}) async {
-      if (code == ApiSetting.ServerError) {
-        //showInAppBrowser(msg, appBarTitle: L.G_ERROR.tr);
-        return false;
-      } else if (code == ApiSetting.RequestTimeout) {
-        await U.show.nativeDialog('Error: $code', 'You may experience slow internet issue, please try again later.');
-        if (tryAgain != null) tryAgain();
-        return false;
-      } else if (code.endsWith(ApiSetting.SessionExpired) || code.endsWith(ApiSetting.ForceLogout)) {
-        accessToken.val = '';
-        await U.show.nativeDialog(L.ERROR_SESSION_EXPIRED_TITLE.tr, L.ERROR_SESSION_EXPIRED_MESSAGE.tr);
-        Get.back();
-        return false;
-      } else if (code.endsWith(ApiSetting.ForceUpdate)) {
-        U.show.forceUpdateDialog(true);
-        return false;
-      } else if (code == ApiSetting.Maintenance) {
-        U.show.nativeDialog(L.ERROR_MAINTENANCE_TITLE.tr, L.ERROR_MAINTENANCE_MESSAGE.tr);
-        return false;
-      } else if (code == ApiSetting.InternalError) {
-        U.show.nativeDialog('Error: $code', msg);
-        return false;
-      }
-      return true;
-    });
-  }
-
-  @override
-  void onReady() async {
-    super.onReady();
-    Sizer.init();
-
-    bool jailbroken = await FlutterJailbreakDetection.jailbroken;
-    print('jailbroken: $jailbroken');
-
-    if (accessToken.val == '' || stagName.val != config.stagName) {
-      //var guest = await Api.getGuestData(onFailed);
-      /*if (guest != null) {
-        accessToken.val = guest.token;
-        stagName.val = config.stagName;
-      }*/
-    }
-    checkCredential();
-  }
-
-  @override
-  Future<bool> onFailed(int code, String msg, {Function()? tryAgain}) async {
-    U.show.nativeDialog('Error: $code', msg);
-    return true;
-  }
-
-  void checkCredential() async {
-    var error = await AppLanguage.init(isDefault: true);
-    if (error != null) {
-      if (kDebugMode) print('-- AppLanguage.init Error: ${error.errorMessage}');
-    }
-
-    // await getAppSetting(onFailed); [e.g. phone number prefix, bank name, state list]
-
-    // moveToEntryPage();
-  }
-
-}
-
-class LoadingPage extends StatelessWidget {
-  const LoadingPage({Key? key}) : super(key: key);
-
-  Widget splashScreen(LoadingController ctrl) {
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        // --- Decline all your widget here.
-        Expanded(child: Center(), flex: 9),
-        FlutterLogo(size: 180),
-        //Image.asset('assets/app_logo.png', width: 220),
-        SizedBox(height: 30),
-        ElevatedButton(
-          onPressed: () async {
-            print('Hello World!');
-            //ctrl.isLoading(true);
-            //await Api.getPreload(ctrl.onFailed);
-            //ctrl.isLoading(false);
-            //Get.to(PresenterPage(), binding: PresenterBinding());
-          },
-          child: Container(padding: EdgeInsets.symmetric(vertical: 12, horizontal: 6), child: Text('Test')),
-        ),
-        Expanded(child: Center(), flex: 10),
-        // --- .
-      ],
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return ProXWidget<LoadingController>(
-      customBackgroundColor: S.color.main,
-      builder: (ctrl) => Center(
-        child: Image.asset('assets/splash.png', fit: BoxFit.contain, width: Get.width * 0.65),
-      ),
-    );
-  }
-
-  /*@override
-  Widget build(BuildContext context) {
-    return ProXWidget<LoadingController>(
-          builder: (ctrl) => Container(
-                color: Colors.white,
-                child: Stack(
-                  children: [
-                    // Main Loaidng Screen with fade effect.
-                    Positioned.fill(
-                      child: AnimatedOpacity(
-                        opacity: ctrl.fadeVisible ? 1.0 : 0.0,
-                        duration: Duration(milliseconds: 1200),
-                        onEnd: () => ctrl.moveToEntryPage(),
-                        child: splashScreen(ctrl),
-                      ),
-                    ),
-                    // Loading Widget for initialize purpose.
-                    Positioned.fill(
-                        child: ctrl.showLoading
-                            ? Container(
-                                width: double.infinity,
-                                height: double.infinity,
-                                color: Colors.black26,
-                                child: Center(
-                                  child: CircularProgressIndicator(),
-                                ))
-                            : Center()),
-                  ],
-                ),
-              ),
-    );
-  }*/
 }
 
 ```
@@ -427,23 +264,6 @@ This project template using not only getx but many other plugin as well, below w
 
   # list project base plugin here:
 
-  # modal_bottom_sheet:
-  # smooth_page_indicator:
-  # pin_code_fields:
-  # qr_code_scanner:
-  # qr_flutter:
-  # carousel_slider:
-  # cool_dropdown:
-  # gallery_saver:
-  # google_place:
-  # menu_button:
-  # open_file:
-  # flutter_switch:
-  # flutter_swiper:
-  # flutter_xlider:
-  # flutter_html:
-  # fl_chart:
-
 # Defined your native splash screen if you have one.
 # After defined, run command: "flutter pub run flutter_native_splash:create".
 # flutter_native_splash:
@@ -562,7 +382,7 @@ in `/android/build.gradle` , add those which mark with `*`.
 
 ```swift
 buildscript {
-    ext.kotlin_version = '1.6.10' //<-- change it from '1.3.50'
+    ext.kotlin_version = '1.7.10' //<-- change it from '1.3.50'
     repositories {
         google()
         mavenCentral()
@@ -570,7 +390,7 @@ buildscript {
     }
 
     dependencies {
-        classpath 'com.android.tools.build:gradle:7.2.0'
+        classpath 'com.android.tools.build:gradle:7.3.0'
         // START: FlutterFire Configuration
   //*   classpath 'com.google.gms:google-services:4.3.10'
   //*   classpath 'com.google.firebase:firebase-crashlytics-gradle:2.8.1'
@@ -1055,6 +875,7 @@ rules:
     # prefer_single_quotes: true  # Uncomment to enable the `prefer_single_quotes` rule
     prefer_const_constructors: false
     use_key_in_widget_constructors: false
+    constant_identifier_names: false
     avoid_print: false
 ```
 
@@ -1066,14 +887,14 @@ Current Flutter & Dart compatibility breakdown:
 
 | Flutter Version | Dart Version |
 | --------------- | ------------ |
-| ^2.10.x	        | ^2.16.x      |
+| ^3.10.x	        | ^3.0.x       |
 
 <br />
 
 Make sure you uncomment `platform :ios` at Podfile and change to version to the noted version.
 | Android | iOS |
 | ---------- | ---- |
-| Min Sdk	21 | 10.0 and above |
+| Min Sdk	22 | 11.0 and above |
 
 <br />
 
@@ -1094,7 +915,7 @@ Make sure you uncomment `platform :ios` at Podfile and change to version to the 
 
 This project is licensed under the MIT License.
 
-Copyright (c) 2022 Dexter Gold
+Copyright (c) 2023 Dexter Gold
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal

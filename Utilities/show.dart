@@ -6,20 +6,23 @@ import 'package:flutter/cupertino.dart';
 import 'package:get/get.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 import 'package:flutter_dialogs/flutter_dialogs.dart';
-import '../Core/app_config.dart';
-import '../Core/extension.dart';
-import '../Core/pro_x.dart';
+import '../../ReuseableWidget/default/confirmation_dialog.dart';
 import '../Controller/notification_controller.dart';
-import '../ReuseableWidget/confirmation_dialog.dart';
+import '../Core/prox_app_config.dart';
+import '../Core/extension.dart';
+import '../Core/prox_constant.dart';
 import '../Helper/device.dart';
 import '../Helper/in_app_browser.dart';
+import '../Helper/sizer.dart';
+import '../Helper/hotkey.dart';
 import '../i18n/app_language.dart';
 import '../i18n/language_key.dart';
-import '../Helper/hotkey.dart';
+
 
 class UtilsShow {
-  // Flash.
-  void flash(String title, String message, {NotificationData? data}) {
+  // Top Flash.
+  void topFlash(String title, String message, {NotificationData? data, VoidCallback? onTap}) {
+    if (title == '' && message == '') return;
     Get.snackbar(title, message,
         titleText: Padding(
             padding: EdgeInsets.only(top: 10),
@@ -29,6 +32,36 @@ class UtilsShow {
             padding: EdgeInsets.only(bottom: 10),
             child: Text(message, maxLines: 2, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 12))),
         snackPosition: SnackPosition.TOP,
+        reverseAnimationCurve: Curves.decelerate,
+        forwardAnimationCurve: Curves.easeOut,
+        margin: EdgeInsets.symmetric(vertical: 10, horizontal: 30),
+        padding: EdgeInsets.symmetric(horizontal: 20),
+        borderRadius: 8,
+        backgroundColor: Colors.white,
+        boxShadows: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.5),
+            blurRadius: 7,
+            offset: Offset(2, 2),
+          ),
+        ],
+        duration: Duration(seconds: 5), onTap: (_) {
+      print('id: ${data?.id ?? 'null'}');
+      if (onTap != null) onTap();
+    });
+  }
+
+  // Bottom Flash
+  void bottomFlash(String title, String message, {NotificationData? data}) {
+    Get.snackbar(title, message,
+        titleText: Padding(
+            padding: EdgeInsets.only(top: 10),
+            child: Text(title,
+                maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(fontWeight: FontWeight.w600))),
+        messageText: Padding(
+            padding: EdgeInsets.only(bottom: 10),
+            child: Text(message, maxLines: 2, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 12))),
+        snackPosition: SnackPosition.BOTTOM,
         reverseAnimationCurve: Curves.decelerate,
         forwardAnimationCurve: Curves.easeOut,
         margin: EdgeInsets.symmetric(vertical: 10, horizontal: 30),
@@ -210,16 +243,24 @@ class UtilsShow {
     );
   }
 
-  Future<void> bottomActionSheet(BuildContext context, {String? title, required List<ListTile> items}) async {
+  Future<void> bottomActionSheet(BuildContext context,
+      {String? title, Icon? titleIcon, required List<ListTile> items}) async {
     await showModalBottomSheet(
         context: context,
+        backgroundColor: Colors.white,
         builder: (BuildContext context) {
           return Wrap(
             children: <Widget>[
               if (title != null && title != '')
                 Container(
-                  padding: EdgeInsets.only(left: 20, top: 20, bottom: 18),
-                  child: Text(title, style: TextStyle(fontSize: 15)),
+                  padding: EdgeInsets.only(left: titleIcon == null ? 0 : 20, top: 20, bottom: 18),
+                  child: Row(
+                    children: [
+                      if (titleIcon != null) titleIcon,
+                      if (titleIcon != null) SizedBox(width: 8),
+                      Expanded(child: Text(title, style: TextStyle(fontSize: 16))),
+                    ],
+                  ),
                 ),
               if (title != null && title != '')
                 Container(
@@ -236,11 +277,12 @@ class UtilsShow {
                 color: Colors.black26,
               ),
               ListTile(
-                leading: Icon(Icons.cancel),
+                leading: Icon(Icons.cancel, color: Colors.red),
                 minLeadingWidth: 20,
                 title: Text(L.GENERAL_CANCEL.tr),
                 onTap: Get.back,
               ),
+              SizedBox(height: Sizer.bottomSafeAreaWithSpec - 10, width: double.infinity)
             ],
           );
         });

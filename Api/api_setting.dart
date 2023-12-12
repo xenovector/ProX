@@ -12,13 +12,15 @@ class ApiSetting {
   static const defaultApiVersion = '/v1';
 
 //General Error Code
+  static const Unauthenticated = 061; // User didn't login.
   static const RequestTimeout = 408;
-  static const Maintenance = 503;
   static const ServerError = 500;
+  static const Maintenance = 503;
   static const InternalError = 12004;
+  static const anotherUnauthorized = 104061;
 
 // ----- ----- ----- -----
-
+  static const Unauthorized = 401; // end with - User didn't have permission.
   static const SessionExpired = 995; // end with
   static const ForceVerifyPhone = 997; // end with
   static const ForceLogout = 996; // end with

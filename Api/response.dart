@@ -1,16 +1,9 @@
-import 'dio_client.dart';
-
-abstract class RData {
-  const RData();
-
-  fromJson(Map<String, dynamic>? json);
-
-  listFromJson(List? json);
-}
+import 'api_error.dart';
 
 class ResponseData<R extends RData> {
   final bool status;
   final int code;
+  final String title;
   final String message;
   final R? data;
   final List<R>? datas;
@@ -21,6 +14,7 @@ class ResponseData<R extends RData> {
   const ResponseData(
       {this.status = false,
       this.code = 0,
+      this.title = '',
       this.message = '',
       this.data,
       this.datas,
@@ -28,9 +22,13 @@ class ResponseData<R extends RData> {
       this.rawData,
       this.error});
 
-  factory ResponseData.fromJson(R item, Map<String, dynamic>? json) {
+  factory ResponseData.fromJson(R item, Map<String, dynamic>? json, {bool forceError = false}) {
     if (json == null) return ResponseData<R>();
     //print('Response.json: $json');
+
+    var mCode = json.containsKey('code') ? json['code'] : 0;
+    var mTitle = json.containsKey('title') ? json['title'] : '';
+    var mMessage = json.containsKey('message') ? json['message'] : '';
 
     var jsonData = json['data'];
     if (jsonData is List && jsonData.isEmpty) jsonData = null;
@@ -51,15 +49,53 @@ class ResponseData<R extends RData> {
       }
     }
 
+     RequestException? mError;
+
+    if (json.containsKey('error') || forceError) {
+      dynamic jsonUnknown = json.containsKey('error') ? json['error'] : json['data'];
+      print('Response.dart.error: $jsonUnknown');
+      Map<String, dynamic>? jsonError = {};
+      if (jsonUnknown is List) {
+        jsonError = jsonUnknown[0];
+      } else {
+        jsonError = jsonUnknown;
+      }
+      if (jsonError != null) {
+        var firstValue = '';
+        jsonError.forEach((key, value) {
+          if (firstValue == '') {
+            if (value is List) {
+              firstValue = value.first.toString();
+            } else {
+              firstValue = value.toString();
+            }
+          }
+        });
+        mError = RequestException(mCode, firstValue);
+      } else {
+        mError = RequestException(mCode, mMessage);
+      }
+    }
+
     return ResponseData<R>(
       status: returnStatus,
-      code: json.containsKey('code') ? json['code'] : 0,
-      message: json.containsKey('message') ? json['message'] : '',
+      code: mCode,
+      title: mTitle,
+      message: mMessage,
       data: mData,
       datas: mDatas,
+      error: mError,
       //total: json['total'] ?? 0,
     );
   }
+}
+
+abstract class RData {
+  const RData();
+
+  fromJson(Map<String, dynamic>? json);
+
+  listFromJson(List? json);
 }
 
 /*

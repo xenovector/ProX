@@ -5,9 +5,10 @@ import 'dart:ui';
 import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
+import '../Api/api_error.dart';
 import 'languages.dart';
 import '../Api/dio_client.dart';
-import '../Core/pro_x_storage.dart';
+import '../Core/prox_locker.dart';
 
 /*
   Welcome to Dexter's Enhanced Flutter i18n!
@@ -69,6 +70,7 @@ class AppLanguage {
   // key for preferences.
   static const String KEY_LANGUAGE_CODE = 'language_code';
   static const String KEY_SUPPORTED_CODES = 'supported_codes';
+  static const String KEY_LANGUAGE_NAME = 'language_name';
   static const String KEY_USER_PREFER_LOCALE_CODE = 'user_prefer_locale_code';
 
   // default locale.
@@ -89,13 +91,15 @@ class AppLanguage {
   static List<String> _supportLocale = [];
   static Locale? get appLocale => _appLocale;
   static List<String> get supportLocale => _supportLocale;
-  static bool isChinese = _appLocale?.languageCode == 'zh';
+  static bool get isChinese => _appLocale?.languageCode == 'zh';
 
-  static ReadWriteValue<String> langCode = ReadWriteValue<String>(KEY_LANGUAGE_CODE, '', ProXStorage.box);
+  static ReadWriteValue<String> langCode = ReadWriteValue<String>(KEY_LANGUAGE_CODE, '', ProXLocker.box);
+  static ReadWriteValue<String> langName = ReadWriteValue<String>(KEY_LANGUAGE_NAME, '', ProXLocker.box);
+
   static ReadWriteValue<List<dynamic>> suppCodes =
-      ReadWriteValue<List<dynamic>>(KEY_SUPPORTED_CODES, <String>[], ProXStorage.box);
+      ReadWriteValue<List<dynamic>>(KEY_SUPPORTED_CODES, <String>[], ProXLocker.box);
   static ReadWriteValue<String> userPreferLocaleCode =
-      ReadWriteValue<String>(KEY_USER_PREFER_LOCALE_CODE, '', ProXStorage.box);
+      ReadWriteValue<String>(KEY_USER_PREFER_LOCALE_CODE, '', ProXLocker.box);
 
   // Initializer.
   static Future<RequestException?> init({bool isDefault = false}) async {
@@ -104,12 +108,12 @@ class AppLanguage {
     if (noInternetion) {
       var szCodesList = suppCodes.val.map((e) => e.toString()).toList();
       _supportLocale = suppCodes.val != [''] ? szCodesList : ['en'];
-      _appLocale = langCode.val != '' ? Locale(langCode.val) : Locale('en');
+      _appLocale = supportLocale.contains(Get.deviceLocale?.languageCode)
+          ? Get.deviceLocale
+          : langCode.val != ''
+              ? Locale(langCode.val)
+              : Locale('en');
     } else {
-        //LabelInfo? cnInfo = await LabelUtil.shared.getLabelWithLocale('cn');
-        //print('cn.version: ${cnInfo?.version}');
-        //LabelInfo? enInfo = await LabelUtil.shared.getLabelWithLocale('en');
-        //print('en.version: ${enInfo?.version}');
       var labelHandleError = await _loadAllTranslations<List<String>>(isDefault);
       if (labelHandleError.error == null) {
         _supportLocale = labelHandleError.data;
@@ -125,24 +129,36 @@ class AppLanguage {
         suppCodes.val = supportLocale;
       } else {
         error = labelHandleError.error;
+        var szCodesList = suppCodes.val.map((e) => e.toString()).toList();
+        _supportLocale = suppCodes.val != [''] ? szCodesList : ['en'];
+        _appLocale = supportLocale.contains(Get.deviceLocale?.languageCode)
+            ? Get.deviceLocale
+            : langCode.val != ''
+                ? Locale(langCode.val)
+                : Locale('en');
       }
     }
-    if (error == null) {
-      await _loadFromLocaleFile();
-      Get.addTranslations(key);
-      Get.updateLocale(appLocale!);
-    }
+    //if (error == null) {
+    await _loadFromLocaleFile();
+    Get.addTranslations(key);
+    Get.updateLocale(appLocale!);
+    //}
     return error;
   }
 
-  void changeLanguage(String localeCode) async {
+  static Future<LabelInfo?> get localeInfo async {
+    LabelInfo? labelInfo = await LabelUtil.shared.getLabelWithLocale(appLocale?.languageCode ?? '');
+    return labelInfo;
+  }
+
+  Future<void> changeLanguage(String localeCode) async {
     LabelInfo? lf = await _loadTranslationFrom(localeCode);
     LabelInfo? labelInfo = lf ?? await LabelUtil.shared.getLabelWithLocale(localeCode);
     _appLocale = Locale(localeCode);
     langCode.val = localeCode;
     userPreferLocaleCode.val = localeCode;
     AppLanguage.key[localeCode] = labelInfo!.map;
-    Get.updateLocale(appLocale!);
+    await Get.updateLocale(appLocale!);
     return;
   }
 
@@ -159,16 +175,23 @@ class AppLanguage {
     return;
   }
 
-  Future<List<LabelInfo?>> getAllLabelInfo() async {
-    return await Future.wait(_supportLocale.map((langCode) {
+  Future<List<LabelInfo>> getAllLabelInfo() async {
+    var list = await Future.wait(_supportLocale.map((langCode) {
       return LabelUtil.shared.getLabelWithLocale(langCode);
     }).toList());
+    List<LabelInfo> returnList = [];
+    for (var item in list) {
+      if (item != null) {
+        returnList.add(item);
+      }
+    }
+    return returnList;
   }
 
   static Future<LabelHandleError<T>> _loadAllTranslations<T>(bool isDefault) async {
     var res = shared.getDefaultLabel();
     if (!isDefault) {
-      res = await shared.getAllLabel((code, msg, {tryAgain}) async {
+      res = await shared.getAllLabel((code, title, msg, {data, tryAgain}) async {
         if (kDebugMode) print('Error:\ncode: $code,\nmsg: $msg');
         return true;
       });
@@ -179,7 +202,8 @@ class AppLanguage {
       await Future.forEach(
           labelSupport.labelInfoList, (LabelInfo labelInfo) async => await LabelUtil.shared.writeLabelInto(labelInfo));
     }
-    return LabelHandleError<T>((haveResult ? labelSupport.supportedLocale : []) as T, haveResult ? null : res.error);
+    return LabelHandleError<T>(
+        (haveResult ? labelSupport.supportedLocale : <String>[]) as T, haveResult ? null : res.error);
   }
 
   /*static Future<LabelInfo?> _loadTranslationFrom(String locale) async {

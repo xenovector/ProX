@@ -3,16 +3,18 @@ import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:path/path.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:uuid/uuid.dart';
+import '../Core/prox_constant.dart';
+import 'api_error.dart';
 import 'api_setting.dart';
 import 'response.dart';
 import '../i18n/app_language.dart';
 import '../Helper/device.dart';
-import '../Core/pro_x_storage.dart' as storage;
+import '../Core/prox_locker.dart' as locker;
 import '../Core/extension.dart';
-import '../Core/pro_x.dart';
 
 typedef OnSuccess = void Function(String message);
-typedef OnFail = Future<bool> Function(int code, String message, {Function()? tryAgain});
+typedef OnFail = Future<bool> Function(int code, String title, String msg, {dynamic data, Function()? tryAgain});
 typedef OnGenericCallBack = void Function(String message, dynamic result);
 
 enum STATUS { FAILED, SUCCESS }
@@ -45,12 +47,12 @@ class DioContentType {
 }
 
 const acceptHeader = 'application/json';
-//const contentHeader = 'application/x-www-form-urlencoded';
-const contentHeader = 'application/json';
+const contentHeader = 'application/x-www-form-urlencoded';
 const multipartHeader = 'multipart/form-data';
 
 // RequestTask Object
 class RequestTask {
+  final String uuid;
   final String urlPath;
   final Map<String, dynamic>? parameter;
   final Map<String, File>? filesField;
@@ -67,7 +69,8 @@ class RequestTask {
   final bool showDebugResponse;
 
   const RequestTask(
-      {required this.urlPath,
+      {required this.uuid,
+      required this.urlPath,
       required this.parameter,
       required this.headerType,
       required this.filesField,
@@ -97,6 +100,7 @@ class RequestTask {
       bool isRequestingEndpoint = false,
       bool showDebugResponse = false}) {
     return RequestTask(
+      uuid: Uuid().v4(),
         urlPath: path,
         parameter: body,
         headerType: headerType,
@@ -114,41 +118,18 @@ class RequestTask {
   }
 }
 
-// RequestTaskException
-class RequestException implements Exception {
-  final int code;
-  final String errorMessage;
-
-  RequestException(this.code, this.errorMessage);
-}
-
-// onObjectException
-RequestException onObjectException(Object e, OnFail onFail) {
-  if (e is RequestException) {
-    onFail(e.code, e.errorMessage);
-    return e;
-  } else if (e is TypeError) {
-    String stack = e.stackTrace?.toString() ?? '';
-    stack = stack.split('#')[1].substring(1).trim();
-    onFail(ApiSetting.InternalError, e.toString() + '\n\nThrowExpression\n$stack');
-    return RequestException(ApiSetting.InternalError, e.toString());
-  } else {
-    onFail(ApiSetting.InternalError, e.toString());
-    return RequestException(ApiSetting.InternalError, e.toString());
-  }
-}
-
-// onErrorCatched
-Future<Response<dynamic>> onErrorCatched(dynamic onError) async {
-  if (onError is DioError && onError.response != null) {
-    return onError.response!;
-  } else {
-    throw RequestException(-1, onError.toString());
-  }
-}
+// Request Queue Lisst
+List<String> requestList = [];
 
 // Request Body Filter
 Future<ResponseData<R>> requestFilter<R extends RData>(R item, RequestTask request) async {
+  requestList.add(request.uuid);
+
+  while (requestList[0] != request.uuid) {
+    //print('request.uuid: ${request.uuid}, request.url: ${request.urlPath}');
+    await Future.delayed(Duration(milliseconds: 200));
+  }
+
   bool noInternetion = !(await checkInternetConnection());
 
   if (noInternetion) {
@@ -166,7 +147,7 @@ Future<ResponseData<R>> requestFilter<R extends RData>(R item, RequestTask reque
       ? {}
       : request.headerType == HeaderType.authorized
           ? {
-              HttpHeaders.authorizationHeader: "Bearer ${request.preAccessToken ?? storage.accessToken.val}",
+              HttpHeaders.authorizationHeader: "Bearer ${request.preAccessToken ?? locker.accessToken.val}",
               HttpHeaders.acceptHeader: acceptHeader,
               HttpHeaders.contentTypeHeader: request.contentType ??
                   (request.requestMethod == HttpMethod.multipart ? multipartHeader : contentHeader),
@@ -190,7 +171,7 @@ Future<ResponseData<R>> requestFilter<R extends RData>(R item, RequestTask reque
   }
 
   final Dio dio = Dio(BaseOptions(
-    connectTimeout: 30000, // 30 seconds,
+    connectTimeout: Duration(seconds: 60),
     headers: header,
   ));
 
@@ -259,13 +240,14 @@ Future<ResponseData<R>> requestFilter<R extends RData>(R item, RequestTask reque
       response = null;
       break;
   }
-  print('<--- Request Backed');
+  print('<--- Request Backed [$szUrl]');
+  requestList.removeAt(0);
   if (response != null) {
-    print('done request with statusCode: ${response.statusCode}');
+    print('done request with statusCode: ${response.statusCode} [$szUrl]');
     if (response.statusCode == 200) {
       // dio body check
       if (request.showDebugResponse) {
-        printSuperLongText('response:\n${response.data}');
+        printSuperLongText('response[$szUrl]:\n${response.data}');
       }
 
       //var rawData = request.ignoreHtmlErrorHandling ? response.data : jsonDecode(response.data);
@@ -273,7 +255,7 @@ Future<ResponseData<R>> requestFilter<R extends RData>(R item, RequestTask reque
         return ResponseData<R>(code: response.statusCode ?? 0, rawData: response.data);
       } else {
         var res = ResponseData<R>.fromJson(item, response.data);
-        print('res.status: $res');
+        //print('res.status: $res');
         if (res.status) {
           return res;
         } else {
@@ -282,8 +264,13 @@ Future<ResponseData<R>> requestFilter<R extends RData>(R item, RequestTask reque
       }
     } else {
       // Handle onError
-      print('Error ${response.statusCode}, message: ${response.statusMessage}, data: ${response.data}');
-      throw RequestException(response.statusCode ?? 0, response.statusMessage ?? '');
+      print('Error ${response.statusCode} [$szUrl], message: ${response.statusMessage}, data: ${response.data}');
+      if (response.data.toString().startsWith('<html>') || response.data.toString().startsWith('<!DOCTYPE')) {
+        throw RequestException(response.statusCode ?? 0, response.data);
+      } else {
+        var res = ResponseData<R>.fromJson(item, response.data, forceError: true);
+        throw res.error ?? RequestException(response.statusCode ?? 0, response.data);
+      }
     }
   } else {
     print('done request without response');

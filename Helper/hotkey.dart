@@ -1,5 +1,6 @@
 // For Styles
 import '../Theme/color.dart';
+import '../Theme/decoration.dart';
 import '../Theme/shadow.dart';
 import '../Theme/text.dart';
 
@@ -12,6 +13,7 @@ import '../Utilities/general.dart';
 // S stands for Styles.
 class S {
   static final color = StyleColor();
+  static final decoration = StyleDecoration();
   static final shadow = StyleShadow();
   static final text = StyleText();
 }

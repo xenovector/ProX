@@ -5,29 +5,33 @@ import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter_vibrate/flutter_vibrate.dart';
+import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:url_launcher/url_launcher_string.dart';
+import 'package:image/image.dart' as img_pkg;
 import '../Helper/device.dart';
+import '../Helper/hotkey.dart';
 import '../Core/extension.dart';
 
-class UtilsGeneral {
 
+class UtilsGeneral {
   void dismissKeyboard(BuildContext context) {
     FocusScope.of(context).requestFocus(FocusNode());
   }
 
   void setSystemNavigationBarColor(Color color, {bool darkIcons = false}) {
     if (DevicePreferences.androidSdkVersion >= 29) return;
-    SystemChrome.setSystemUIOverlayStyle(
-        SystemUiOverlayStyle(statusBarColor: Colors.transparent, systemNavigationBarColor: color,
+    SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
+        statusBarColor: Colors.transparent,
+        systemNavigationBarColor: color,
         systemNavigationBarIconBrightness: darkIcons ? Brightness.dark : Brightness.light));
   }
 
   Future<void> playSound(String name) async {
     AudioCache cache = AudioCache();
-    await cache.load(name);
+    await cache.load('sounds/$name');
     final player = AudioPlayer();
-    await player.play(AssetSource(name));
+    await player.play(AssetSource('sounds/$name'));
   }
 
   void vibrate() async {
@@ -43,6 +47,53 @@ class UtilsGeneral {
     // vibrate - sleep 0.5s - vibrate - sleep 1s - vibrate - sleep 0.5s - vibrate
     Vibrate.vibrateWithPauses(pauses);
     */
+  }
+
+  Future<bool> checkRestrictFileSize(String path) async {
+    Uint8List bytes = await File(path).readAsBytes();
+    int fileSize = bytes.lengthInBytes;
+    double sizeInMB = fileSize / 1024 / 1024;
+    return sizeInMB >= 10;
+  }
+
+  Future<File> resizeImage(String path) async {
+    bool isImage = false;
+    if (path.endsWith('jpg') || path.endsWith('jpeg') || path.endsWith('png')) {
+      isImage = true;
+    }
+    if (!isImage) return File(path);
+    Uint8List bytes = await File(path).readAsBytes();
+    int fileSize = bytes.lengthInBytes;
+    double sizeInMB = fileSize / 1024 / 1024;
+    //print('resizeImage.path: $path');
+    //print('sizeInMB: $sizeInMB mb');
+    img_pkg.Image? img = img_pkg.decodeImage(bytes);
+    if (img != null) {
+      bool needResize = false;
+      int newWidth = 0;
+      int newHeight = 0;
+      if (sizeInMB >= 9) {
+        needResize = true;
+        double rate = 0;
+        if (img.width > img.height) {
+          rate = img.width / 960;
+        } else if (img.height > img.width) {
+          rate = img.height / 960;
+        }
+        newWidth = (img.width / rate).round();
+        newHeight = (img.height / rate).round();
+      }
+      if (needResize) {
+        img_pkg.Image resizedImage = img_pkg.copyResize(img, width: newWidth, height: newHeight);
+        Uint8List resizedBytes = Uint8List.fromList(img_pkg.encodePng(resizedImage));
+        String dir = (await getApplicationDocumentsDirectory()).path;
+        String newPath = '$dir/${basename(path)}';
+        File file = File(newPath);
+        await file.writeAsBytes(resizedBytes);
+        return file;
+      }
+    }
+    return File(path);
   }
 
   bool isEmailValid(String email) {
@@ -71,7 +122,7 @@ class UtilsGeneral {
       return;
     } else if (await canLaunchUrlString(url)) {
       if (pop) Get.back();
-      await launchUrlString(url);
+      await launchUrlString(url, mode: LaunchMode.externalApplication);
     } else {
       throw 'Could not launch $url';
     }
@@ -85,15 +136,49 @@ class UtilsGeneral {
   }
 
   void openWhatsapp({required String number, required String text}) async {
-    await openURL('https://wa.me/$number?text=$text');
+    final url = 'whatsapp://send?phone=$number&text=${Uri.parse(text)}';
+    if (await canLaunchUrlString(url)) {
+      await openURL(url);
+    } else {
+      //await openURL('https://wa.me/$number?text=$text');
+      U.show.topFlash('Application not found.', 'You are required to install WhatsApp before you can link it over.');
+    }
   }
 
-  void openFacebook({required String name}) async {
-    await openURL('htps://fb.me/$name');
+  void openFacebookByName({required String name}) async {
+    await openURL('https://fb.me/$name');
   }
 
-  void openMessenger({required String name}) async {
-    await openURL('htps://m.me/$name');
+  void openFacebookByID({required int pageId}) async {
+    await openURL('fb://page/$pageId');
+  }
+
+  void openMessengerByName({required String name}) async {
+    await openURL('https://m.me/$name');
+  }
+
+  void openMessengerByID({required int pageId}) async {
+    await openURL('fb-messenger://user/$pageId'); // 111562633998062
+  }
+
+  void openInXiaoHongShu({required String user}) async {
+    //user/profile/5feef3ec000000000100905e?xhsshare=CopyLink&appuid=5df750ce0000000001003b72&apptime=1679320466
+    final url = 'xhsdiscover://user/$user';
+    if (await canLaunchUrlString(url)) {
+      await openURL(url);
+    } else {
+      U.show
+          .topFlash('Application not found.', 'You are required to install Xiao Hong Shu before you can link it over.');
+    }
+  }
+
+  void openInInstagram({required String user}) async {
+    final url = 'instagram://user?username=$user';
+    if (await canLaunchUrlString(url)) {
+      await openURL(url);
+    } else {
+      U.show.topFlash('Application not found.', 'You are required to install Instagram before you can link it over.');
+    }
   }
 
   void call({required String phone}) async {

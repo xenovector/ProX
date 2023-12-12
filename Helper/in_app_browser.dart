@@ -2,7 +2,6 @@ import 'dart:io';
 import 'dart:async';
 import 'dart:convert';
 import 'package:sprintf/sprintf.dart';
-import 'package:flutter/gestures.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import '../export.dart';
 
@@ -13,7 +12,7 @@ class InAppBrowerBinding extends Bindings {
   }
 }
 
-class InAppBrowserController extends ProXController {
+class InAppBrowserController extends ProXController<InAppBrowserPage> {
   InAppWebViewController? webViewController;
   PullToRefreshController? pullToRefreshController;
 
@@ -40,13 +39,16 @@ class InAppBrowserController extends ProXController {
   }
 }
 
-class InAppBrowserPage extends StatelessWidget {
+class InAppBrowserPage extends ProXWidget<InAppBrowserController> {
   final String? appBarTitle;
   final String urlLink;
   final Map<String, String>? header;
   final Map<String, String>? defaultHeader; //{'Authorization': 'Bearer ${accessToken.val}'};
 
   InAppBrowserPage(this.urlLink, {this.appBarTitle, this.header, this.defaultHeader});
+
+  @override
+  String get routeName => '/InAppBrowserPage';
 
   final InAppWebViewGroupOptions options = InAppWebViewGroupOptions(
       crossPlatform: InAppWebViewOptions(
@@ -70,34 +72,59 @@ class InAppBrowserPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ProXWidget<InAppBrowserController>(
-      appBar: appBarTitle.isEmptyOrNull ? null : (ctrl) => customAppBar(appBarTitle!, withBackBtn: true),
-      builder: (ctrl) => InAppWebView(
-        gestureRecognizers: {
+    return ProXScaffold<InAppBrowserController>(
+      appBar: (ctrl) => appBarTitle.isEmptyOrNull ? null : customAppBar(appBarTitle!, withBackBtn: true),
+      builder: (ctrl) =>  InAppWebView(
+        /*gestureRecognizers: {
           Factory(() => VerticalDragGestureRecognizer()),
           Factory(() => HorizontalDragGestureRecognizer()),
-        },
+        },*/
         initialUrlRequest: getURLRequest(),
         initialOptions: options,
-        pullToRefreshController: ctrl.pullToRefreshController,
-        onWebViewCreated: (InAppWebViewController webViewController) {
-          ctrl.webViewController = webViewController;
-          ctrl.webViewController!.addJavaScriptHandler(handlerName: 'Flutter', callback: ctrl.onJavascriptHandler);
+        pullToRefreshController: c.pullToRefreshController,
+        onWebViewCreated: (InAppWebViewController webViewController) async {
+          c.webViewController = webViewController;
+          c.webViewController!.addJavaScriptHandler(handlerName: 'Flutter', callback: c.onJavascriptHandler);
+
+          /*bool isAndroidWebSupported = await AndroidWebViewFeature.isFeatureSupported(AndroidWebViewFeature.WEB_MESSAGE_LISTENER);
+
+          print('isAndroidWebSupported: $isAndroidWebSupported');
+
+          if (!Platform.isAndroid || isAndroidWebSupported) {
+            await ctrl.webViewController?.addWebMessageListener(WebMessageListener(
+              jsObjectName: "Flutter",
+              onPostMessage: (message, sourceOrigin, isMainFrame, replyProxy) {
+                print('webView.message: ${message ?? 'null'}');
+                Future.delayed(const Duration(seconds: 1), () {
+                  if (isBack) return;
+                  if (message != null && message == 'payment_success') {
+                    isBack = true;
+                    // Get.back(result: 'completePayment');
+                    //Navigator.of(context).pop('completePayment');
+                  } else if (message != null && message == 'payment_fail') {
+                    isBack = true;
+                    // Get.back(result: 'cancelPayment');
+                   // Navigator.of(context).pop('cancelPayment');
+                  }
+                });
+              },
+            ));
+          }*/
         },
-        onLoadStop: (InAppWebViewController controller, Uri? url) {
-          //print('Page finished loading: $url');
-          ctrl.pullToRefreshController?.endRefreshing();
-          Future.delayed(Duration(milliseconds: 100)).then((_) {
-            ctrl.isLoading(false);
-          });
+        onLoadStop: (InAppWebViewController controller, Uri? url) async {
+          print('InAppWebView finished loading: $url');
+          c.pullToRefreshController?.endRefreshing();
+          await Future.delayed(Duration(milliseconds: 100));
+          c.isLoading(false);
+
         },
         onLoadError: (controller, url, code, message) {
           U.show.toast(sprintf(L.GENERAL_ERROR_CODE_COLON_MSG.tr, [code, message]), context: context);
-          ctrl.isLoading(false);
+          c.isLoading(false);
         },
         onLoadHttpError: (controller, url, statusCode, description) {
           U.show.toast(sprintf(L.GENERAL_ERROR_CODE_COLON_MSG.tr, [statusCode, description]), context: context);
-          ctrl.isLoading(false);
+          c.isLoading(false);
         },
       ),
     );

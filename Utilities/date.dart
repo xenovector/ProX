@@ -24,7 +24,7 @@ class UtilsDate {
   }
 
   String formatDateTimeFromTimeString(String time, String format) {
-    DateTime date = DateTime.parse(getCurrentDate() + ' ' + time);
+    DateTime date = DateTime.parse('${getCurrentDate()} $time');
     var newFormat = DateFormat(format);
     return newFormat.format(date);
   }
@@ -48,7 +48,7 @@ class UtilsDate {
 
   int getDaysIn({required int year, required int month}) {
     DateTime thisMonth = DateTime(year, month);
-    DateTime nextMonth = month == 12 ? DateTime(year+1, 1) : DateTime(year, month+1);
+    DateTime nextMonth = month == 12 ? DateTime(year + 1, 1) : DateTime(year, month + 1);
     return nextMonth.toUtc().difference(thisMonth).inDays;
   }
 
@@ -67,6 +67,22 @@ class UtilsDate {
     return szDateTime;
   }
 
+  String getCurrentDateForLog() {
+    DateTime now = DateTime.now();
+    String year = now.year.toString();
+    String month = Month().getFullMonths.firstWhere((element) => element.monthday == now.month).shortName;
+    String day = now.day < 10 ? '0${now.day}' : now.day.toString();
+    return '$day $month $year';
+  }
+
+  String getCurrentTimeForLog() {
+    DateTime now = DateTime.now();
+    String hour = now.hour < 10 ? '0${now.hour}' : now.hour.toString();
+    String minutes = now.minute < 10 ? '0${now.minute}' : now.minute.toString();
+    String seconds = now.second < 10 ? '0${now.second}' : now.second.toString();
+    return '$hour:$minutes:$seconds  GMT: ${now.timeZoneOffset}';
+  }
+
   /// e.g. GMT+8
   String getTimeZone() {
     DateTime now = DateTime.now();
@@ -77,7 +93,6 @@ class UtilsDate {
     DateTime now = DateTime.now();
     return now.microsecondsSinceEpoch.toString();
   }
-
 }
 
 class Month {

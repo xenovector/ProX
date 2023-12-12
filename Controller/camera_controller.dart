@@ -16,13 +16,6 @@ import '../export.dart';
 
 typedef OnRotatedOverLayer = Widget Function(bool isPortrait);
 
-/// ProX Custom Camera Controller.
-/// [addFrontLayer] Return true if orientation is portrait mode, else false.
-Future<File?> showCameraController({CameraLensDirection? lensDirection, OnRotatedOverLayer? addFrontLayer}) {
-  return Get.to(CameraProXPage(),
-      binding: CameraProXBinding(lensDirection ?? CameraLensDirection.back, addFrontLayer))!;
-}
-
 /// Convenience Image Picker.
 Future<File?> showImagePicker(BuildContext context, {bool customCamera = true, bool includedFilePicker = false}) async {
   int? index;
@@ -51,7 +44,7 @@ Future<File?> showImagePicker(BuildContext context, {bool customCamera = true, b
                         Get.back(result: 3);
                       }),
               ],
-              cancelButton: CupertinoActionSheetAction(child: Text('Cancel'), onPressed: Get.back));
+              cancelButton: CupertinoActionSheetAction(onPressed: Get.back, child: Text('Cancel')));
         });
   } else {
     index = await showModalBottomSheet(
@@ -104,8 +97,12 @@ Future<File?> showImagePicker(BuildContext context, {bool customCamera = true, b
       }
       break;
     case 2:
-      XFile? xFile = await ImagePicker().pickImage(source: img_picker.ImageSource.gallery);
-      pickedFile = (xFile == null) ? null : File(xFile.path);
+      try {
+        XFile? xFile = await ImagePicker().pickImage(source: img_picker.ImageSource.gallery);
+        pickedFile = (xFile == null) ? null : File(xFile.path);
+      } catch (error) {
+        print('Error: ${error.toString()}');
+      }
       break;
     case 3:
       FilePickerResult? xFile = await FilePicker.platform.pickFiles(
@@ -118,6 +115,14 @@ Future<File?> showImagePicker(BuildContext context, {bool customCamera = true, b
       break;
   }
   return pickedFile;
+}
+
+
+/// ProX Custom Camera Controller.
+/// [addFrontLayer] Return true if orientation is portrait mode, else false.
+Future<File?> showCameraController({CameraLensDirection? lensDirection, OnRotatedOverLayer? addFrontLayer}) {
+  return Get.to(CameraProXPage(),
+      binding: CameraProXBinding(lensDirection ?? CameraLensDirection.back, addFrontLayer))!;
 }
 
 /*
@@ -160,16 +165,15 @@ class CameraProXBinding extends Bindings {
 
   @override
   void dependencies() {
-    Get.put(CameraProXController(this.lensDirection, this.addFrontLayer));
+    Get.put(CameraProXController(lensDirection, addFrontLayer));
   }
 }
 
-class CameraProXController extends ProXController with SingleGetTickerProviderMixin {
+class CameraProXController extends ProXController<CameraProXPage> with GetSingleTickerProviderStateMixin {
   final CameraLensDirection preferLensDirection;
   final OnRotatedOverLayer? extraLayout;
   AnimationController? lottieCtrl;
   Duration animateDuration = Duration(milliseconds: 1000);
-  bool didInit = false;
 
   CameraProXController(this.preferLensDirection, this.extraLayout);
 
@@ -191,12 +195,21 @@ class CameraProXController extends ProXController with SingleGetTickerProviderMi
   bool get haveFrontLens => frontLens != null;
   bool get haveExternalLens => externalLens != null;
 
+  // Check is camera is bigger then screen.
+  bool get cameraOverSized => Get.width / Get.height < 9 / 16;
+
+  // Use when camera is bigger then screen.
+  double get sizeToReduce => ((Get.height * 9 / 16) - Get.width) / 2;
+
+  // Use when camera is smaller then screen.
+  double get sizeToIncrease => (Get.width - (Get.height * 9 / 16)) / 2;
+
   @override
   void onInit() async {
     lottieCtrl = AnimationController(vsync: this);
     try {
       cameras = await availableCameras();
-      if (cameras.length > 0) {
+      if (cameras.isNotEmpty) {
         backLens = cameras.firstWhere((e) => e.lensDirection == CameraLensDirection.back,
             orElse: () =>
                 CameraDescription(name: 'null', lensDirection: CameraLensDirection.back, sensorOrientation: 0));
@@ -263,7 +276,7 @@ class CameraProXController extends ProXController with SingleGetTickerProviderMi
       cameraDescription,
       ResolutionPreset.high,
       enableAudio: false,
-      imageFormatGroup: ImageFormatGroup.jpeg,
+      imageFormatGroup: Platform.isIOS ? ImageFormatGroup.bgra8888 : ImageFormatGroup.jpeg,
     );
     controller?.addListener(update);
     try {
@@ -278,6 +291,7 @@ class CameraProXController extends ProXController with SingleGetTickerProviderMi
     } on CameraException catch (e) {
       logError(e.code, e.description ?? 'Unknown Camera Error 171');
     }
+    didInit();
     update();
   }
 
@@ -347,8 +361,8 @@ class CameraProXController extends ProXController with SingleGetTickerProviderMi
                 scale: 3.5,
                 child: Lottie.asset('lib/ProX/Assets/lottie/switch_camera.json',
                     controller: lottieCtrl, repeat: false, animate: false, onLoaded: (composition) {
-                  if (didInit) return;
-                  didInit = true;
+                  if (isInited) return;
+                  didInit();
                   if (controller?.description == backLens && preferLensDirection == CameraLensDirection.front) {
                     lottieCtrl?.animateTo(0.5, duration: animateDuration);
                   }
@@ -369,8 +383,9 @@ class CameraProXController extends ProXController with SingleGetTickerProviderMi
               : haveBackLens
                   ? backLens
                   : null;
-          if (lens != null)
-            lottieCtrl?.animateTo(1, duration: animateDuration)?..whenComplete(() => lottieCtrl?.reset());
+          if (lens != null) {
+            lottieCtrl?.animateTo(1, duration: animateDuration).whenComplete(() => lottieCtrl?.reset());
+          }
         } else if (controller?.description == externalLens) {
           lens = haveBackLens
               ? backLens
@@ -499,110 +514,129 @@ class CameraProXController extends ProXController with SingleGetTickerProviderMi
   }
 }
 
-class CameraProXPage extends StatelessWidget {
+class CameraProXPage extends ProXWidget<CameraProXController> {
+
+  @override
+  String get routeName => '/CameraProXPage';
+
   @override
   Widget build(BuildContext context) {
-    return ProXWidget<CameraProXController>(
-      builder: (ctrl) => Container(
-          color: Colors.black,
-          child: Stack(
-            children: [
-              Positioned(
-                  top: 0,
-                  bottom: 0,
-                  left: ctrl.imageFile == null ? null : 0,
-                  right: ctrl.imageFile == null ? null : 0,
-                  child: ctrl.imageFile == null
-                      ? Center(child: cameraPreviewWidget(ctrl))
-                      : PinchZoom(
-                          child: Image.file(ctrl.imageFile!, fit: BoxFit.contain),
-                          resetDuration: Duration(milliseconds: 100),
-                          maxScale: 2.5,
-                        )),
-              ctrl.extraLayout == null || ctrl.imageFile != null
-                  ? Center()
-                  : Positioned.fill(
+    return ProXScaffold<CameraProXController>(
+        builder: (ctrl) {
+          return Container(
+              color: Colors.black,
+              child: Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  Positioned(
+                      top: 0,
+                      bottom: 0,
+                      //left: ctrl.imageFile == null ? null : 0,
+                      //right: ctrl.imageFile == null ? null : 0,
+                      left: c.imageFile == null
+                          ? c.cameraOverSized
+                              ? -c.sizeToReduce
+                              : 0
+                          : 0,
+                      right: c.imageFile == null
+                          ? c.cameraOverSized
+                              ? -c.sizeToReduce
+                              : 0
+                          : 0,
+                      child: c.imageFile == null
+                          ? Center(child: cameraPreviewWidget(ctrl))
+                          : PinchZoom(
+                              resetDuration: Duration(milliseconds: 100),
+                              maxScale: 2.5,
+                              child: Image.file(c.imageFile!, fit: BoxFit.contain),
+                            )),
+                  c.extraLayout == null || c.imageFile != null
+                      ? Center()
+                      : Positioned.fill(
+                          child: NativeDeviceOrientationReader(
+                              useSensor: true,
+                              builder: (context) {
+                                NativeDeviceOrientation orientation = NativeDeviceOrientationReader.orientation(context);
+                                bool isPortrait = (orientation == NativeDeviceOrientation.portraitUp) ||
+                                    (orientation == NativeDeviceOrientation.portraitDown);
+                                return c.extraLayout!(isPortrait);
+                              })),
+                  Positioned(
+                      //left: 20,
+                      //right: 20,
+                      //top: 20 + (Sizer.topSafeAreaHeight / 2),
+                      left: c.cameraOverSized ? 18 : c.sizeToIncrease + 18,
+                      top: 18 + (Sizer.topSafeAreaHeight / 2),
+                      child: Row(
+                        children: [
+                          c.imageFile == null
+                              ? InkWell(
+                                  child: Container(
+                                      padding: EdgeInsets.all(5),
+                                      child: Icon(Icons.close_rounded, size: 36, color: Colors.white)),
+                                  onTap: () {
+                                    Get.back();
+                                  },
+                                )
+                              : Center()
+                        ],
+                      )),
+                  Positioned(
+                      left: 40,
+                      right: 40,
+                      bottom: 30,
                       child: NativeDeviceOrientationReader(
-                          useSensor: true,
-                          builder: (context) {
-                            NativeDeviceOrientation orientation = NativeDeviceOrientationReader.orientation(context);
-                            bool isPortrait = (orientation == NativeDeviceOrientation.portraitUp) ||
-                                (orientation == NativeDeviceOrientation.portraitDown);
-                            return ctrl.extraLayout!(isPortrait);
-                          })),
-              Positioned(
-                  left: 20,
-                  right: 20,
-                  top: 20 + (Sizer.topSafeAreaHeight / 2),
-                  child: Row(
-                    children: [
-                      ctrl.imageFile == null
-                          ? InkWell(
-                              child: Container(
-                                  padding: EdgeInsets.all(5),
-                                  child: Icon(Icons.close_rounded, size: 36, color: Colors.white)),
-                              onTap: () {
-                                Get.back();
-                              },
-                            )
-                          : Center()
-                    ],
-                  )),
-              Positioned(
-                  left: 40,
-                  right: 40,
-                  bottom: 30,
-                  child: NativeDeviceOrientationReader(
-                    useSensor: true,
-                    builder: (context) {
-                      NativeDeviceOrientation orientation = NativeDeviceOrientationReader.orientation(context);
-                      return Row(
-                          children: ctrl.imageFile == null
-                              ? [
-                                  Expanded(child: Center()),
-                                  InkWell(
-                                      child: Container(
-                                          height: 60,
-                                          width: 60,
-                                          margin: EdgeInsets.all(5),
-                                          padding: EdgeInsets.all(5),
-                                          decoration: BoxDecoration(
-                                            color: Colors.grey[300],
-                                            borderRadius: BorderRadius.circular(30),
-                                            boxShadow: [
-                                              BoxShadow(
-                                                color: Colors.grey.withOpacity(0.5),
-                                                spreadRadius: 0,
-                                                blurRadius: 6,
-                                                offset: Offset(0, 1),
-                                              ),
-                                            ],
-                                          ),
+                        useSensor: true,
+                        builder: (context) {
+                          NativeDeviceOrientation orientation = NativeDeviceOrientationReader.orientation(context);
+                          return Row(
+                              children: c.imageFile == null
+                                  ? [
+                                      Expanded(child: Center()),
+                                      InkWell(
                                           child: Container(
+                                              height: 60,
+                                              width: 60,
+                                              margin: EdgeInsets.all(5),
+                                              padding: EdgeInsets.all(5),
                                               decoration: BoxDecoration(
-                                                  color: Colors.white, borderRadius: BorderRadius.circular(25)))),
-                                      onTap: () {
-                                        ctrl.onTakePictureButtonPressed(orientation);
+                                                color: Colors.grey[300],
+                                                borderRadius: BorderRadius.circular(30),
+                                                boxShadow: [
+                                                  BoxShadow(
+                                                    color: Colors.grey.withOpacity(0.5),
+                                                    spreadRadius: 0,
+                                                    blurRadius: 6,
+                                                    offset: Offset(0, 1),
+                                                  ),
+                                                ],
+                                              ),
+                                              child: Container(
+                                                  decoration: BoxDecoration(
+                                                      color: Colors.white, borderRadius: BorderRadius.circular(25)))),
+                                          onTap: () {
+                                            c.onTakePictureButtonPressed(orientation);
+                                          }),
+                                      Expanded(
+                                          child: Row(
+                                        mainAxisAlignment: MainAxisAlignment.end,
+                                        children: [c.switchCameraWidget(orientation)],
+                                      )),
+                                    ]
+                                  : [
+                                      roundedButton(Icons.close_rounded, Colors.red, () {
+                                        c.onRetake();
                                       }),
-                                  Expanded(
-                                      child: Row(
-                                    mainAxisAlignment: MainAxisAlignment.end,
-                                    children: [ctrl.switchCameraWidget(orientation)],
-                                  )),
-                                ]
-                              : [
-                                  roundedButton(Icons.close_rounded, Colors.red, () {
-                                    ctrl.onRetake();
-                                  }),
-                                  Expanded(child: Center()),
-                                  roundedButton(Icons.check_rounded, Colors.green, () {
-                                    ctrl.onDone();
-                                  })
-                                ]);
-                    },
-                  ))
-            ],
-          )),
+                                      Expanded(child: Center()),
+                                      roundedButton(Icons.check_rounded, Colors.green, () {
+                                        c.onDone();
+                                      })
+                                    ]);
+                        },
+                      ))
+                ],
+              ));
+        }
     );
   }
 
@@ -616,20 +650,7 @@ class CameraProXPage extends StatelessWidget {
   }
 
   Widget cameraPreviewWidget(CameraProXController ctrl) {
-    if (ctrl.controller == null || !ctrl.controller!.value.isInitialized) {
-      return Container(
-        width: Get.width,
-        child: Text(
-          '', //'Camera Initializing...',
-          textAlign: TextAlign.center,
-          style: TextStyle(
-            color: Colors.white,
-            fontSize: 20.0,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-      );
-    } else {
+    if (ctrl.controller != null && ctrl.controller!.value.isInitialized && ctrl.isInited) {
       return Listener(
         onPointerDown: (_) => ctrl.pointers++,
         onPointerUp: (_) => ctrl.pointers--,
@@ -643,6 +664,19 @@ class CameraProXPage extends StatelessWidget {
               onTapDown: (details) => ctrl.onViewFinderTap(details, constraints),
             );
           }),
+        ),
+      );
+    } else {
+      return SizedBox(
+        width: Get.width,
+        child: Text(
+          '', //'Camera Initializing...',
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: 20.0,
+            fontWeight: FontWeight.w600,
+          ),
         ),
       );
     }

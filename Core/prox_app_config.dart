@@ -1,8 +1,14 @@
 import 'package:flutter/material.dart';
 
+/// Environment Type:
+/// PRD = Production
+/// UAT = User Acceptance Test
+/// STG = Staging
+enum Environment { PRD, UAT, STG, DEV }
+
 class AppConfig extends InheritedWidget {
   final String appName;
-  final String stagName;
+  final Environment environment;
   final String apiBaseUrl;
   final String? demoAccountID;
   final String? demoAccountPwd;
@@ -11,10 +17,15 @@ class AppConfig extends InheritedWidget {
   static const iosAppID = '';
   static const hmsAppID = '';
 
+  bool get isPRD => environment == Environment.PRD;
+  bool get isUAT => environment == Environment.UAT;
+  bool get isSTG => environment == Environment.STG;
+  bool get isDEV => environment == Environment.DEV;
+
   const AppConfig({
     Key? key,
     required this.appName,
-    required this.stagName,
+    required this.environment,
     required this.apiBaseUrl,
     this.demoAccountID,
     this.demoAccountPwd,
